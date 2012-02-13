@@ -110,7 +110,7 @@ The Magic
 
 Now, we have to tell uni-form to generate html that will be compatible with Bootstrap.
 Lucky enough, uni-form provides us with the ability to override the generic field HTML template.
-Just make a new file called "field.html" inside [template root path]/uni_form/ folder with the
+Just make a new file called **field.html** inside **[template root path]/uni_form/** folder with the
 following content:
 
 .. code-block:: html
@@ -140,5 +140,5 @@ This template handles labels, required fields, help text, errors etc. The end re
 
 .. container:: center-align
 
-    .. image:: ../static/uploads/uniform_bootstrap.png
+    .. image:: ../static/uploads/bootstrap_uniform.png
 
