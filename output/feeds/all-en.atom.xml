@@ -86,7 +86,7 @@ The button classes are also important.&lt;/p&gt;
 &lt;h2&gt;The Magic&lt;/h2&gt;
 &lt;p&gt;Now, we have to tell uni-form to generate html that will be compatible with Bootstrap.
 Lucky enough, uni-form provides us with the ability to override the generic field HTML template.
-Just make a new file called &amp;quot;field.html&amp;quot; inside [template root path]/uni_form/ folder with the
+Just make a new file called &lt;strong&gt;field.html&lt;/strong&gt; inside &lt;strong&gt;[template root path]/uni_form/&lt;/strong&gt; folder with the
 following content:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;{% if field.is_hidden %}
     {{ field }}
@@ -111,7 +111,7 @@ following content:&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;This template handles labels, required fields, help text, errors etc. The end result looks something like this:&lt;/p&gt;
 &lt;div class="center-align container"&gt;
-&lt;img alt="../static/uploads/uniform_bootstrap.png" src="../static/uploads/uniform_bootstrap.png" /&gt;
+&lt;img alt="../static/uploads/bootstrap_uniform.png" src="../static/uploads/bootstrap_uniform.png" /&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 </summary><category term="python"></category><category term="plugin"></category><category term="vim"></category><category term="coding"></category><category term="twitter"></category><category term="bootstrap"></category><category term="uniform"></category></entry><entry><title>New Year's Python Meme 2012</title><link href="http://brainacle.com/new-years-python-meme-2012.html" rel="alternate"></link><updated>2011-12-28T14:01:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-12-28:/new-years-python-meme-2012.html/</id><summary type="html">&lt;p&gt;Following Tarek Ziade's &lt;a class="reference external" href="http://tarekziade.wordpress.com/2011/12/20/new-years-python-meme-2/"&gt;#2012pythonmeme&lt;/a&gt;:&lt;/p&gt;
