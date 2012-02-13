@@ -1,5 +1,120 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Brainacle</title><link href="http://brainacle.com" rel="alternate"></link><link href="http://brainacle.com/feeds/all.atom.xml" rel="self"></link><id>http://brainacle.com</id><updated>2011-12-28T14:01:00Z</updated><entry><title>New Year's Python Meme 2012</title><link href="http://brainacle.com/new-years-python-meme-2012.html" rel="alternate"></link><updated>2011-12-28T14:01:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-12-28:/new-years-python-meme-2012.html/</id><summary type="html">&lt;p&gt;Following Tarek Ziade's &lt;a class="reference external" href="http://tarekziade.wordpress.com/2011/12/20/new-years-python-meme-2/"&gt;#2012pythonmeme&lt;/a&gt;:&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Brainacle</title><link href="http://brainacle.com" rel="alternate"></link><link href="http://brainacle.com/feeds/all.atom.xml" rel="self"></link><id>http://brainacle.com</id><updated>2012-02-13T20:58:00Z</updated><entry><title>How to use Django Uni-form with Twitter Bootstrap CSS</title><link href="http://brainacle.com/how-to-use-django-uni-form-with-twitter-bootstrap-css.html" rel="alternate"></link><updated>2012-02-13T20:58:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-02-13:/how-to-use-django-uni-form-with-twitter-bootstrap-css.html/</id><summary type="html">&lt;p&gt;I'm sure, most of you, know what &lt;a class="reference external" href="https://github.com/pydanny/django-uni-form"&gt;django-uni-form&lt;/a&gt; is... For those that don't, django-uni-form is a
+very cool django app that makes form management/styling/layouting a breeze. You can do pretty much anything to a form with it: Split it in formsets, add
+HTML between every element, wrap different elements in different containers etc. Also, it produces great HTML, and it manages the &amp;lt;form&amp;gt; tag, as well
+as the submit/reset buttons. If you aren't using it, you should definitely start.&lt;/p&gt;
+&lt;p&gt;&lt;a class="reference external" href="http://twitter.github.com/bootstrap/"&gt;Twitter Bootstrap&lt;/a&gt; is a client side framework by twitter, encompassing many aspects - layout, sane default CSS, typography,
+Javascript plugins, even some icons. It looks very professional, it's easy to use and very popular. The way bootstrap styles a form is what most people need when
+building or prototyping a web app. But, you need to be able to change some css classes and html elements in order to work.&lt;/p&gt;
+&lt;p&gt;Doing this with django-uni-form is extremely easy. All we need to do is change the default &lt;strong&gt;field&lt;/strong&gt; template. I'll start with an example:&lt;/p&gt;
+&lt;div class="section" id="bootstrap"&gt;
+&lt;h2&gt;Bootstrap&lt;/h2&gt;
+&lt;p&gt;This step is easy. Just make sure you have downloaded the Bootstrap CSS file, and that it's properly loaded.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-html"&gt;
+&lt;h2&gt;The HTML&lt;/h2&gt;
+&lt;p&gt;Simple HTML is all we need:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;{% load uni_form_tags %}
+&lt;span class="cp"&gt;&amp;lt;!doctype html&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;html&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;head&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;title&amp;gt;&lt;/span&gt;Django Uniform and Bootstrap&lt;span class="nt"&gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
+  &lt;span class="c"&gt;&amp;lt;!-- LOAD BOOTSTRAP CSS HERE --&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/head&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;body&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;header&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;navbar&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;/header&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;role=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;main&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;container&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;row&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;span12&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+            {% uni_form form form.helper %}
+        &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;hr/&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;footer&amp;gt;&lt;/span&gt;
+      Brainacle 2012
+    &lt;span class="nt"&gt;&amp;lt;/footer&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+  &lt;span class="c"&gt;&amp;lt;!-- LOAD BOOTSTRAP JS HERE --&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/body&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-form"&gt;
+&lt;h2&gt;The Form&lt;/h2&gt;
+&lt;p&gt;I'm making a simple User edit ModelForm, with one extra text field:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.contrib.auth.models&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;User&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.core.urlresolvers&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;reverse&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;uni_form.helper&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;FormHelper&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;uni_form.layout&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ButtonHolder&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Submit&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Fieldset&lt;/span&gt;
+
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;UserEditForm&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ModelForm&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;bio&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;CharField&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;label&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;Bio&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;required&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="n"&gt;widget&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Textarea&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;attrs&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;class&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;span12&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}))&lt;/span&gt;
+
+    &lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Meta&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;model&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;User&lt;/span&gt;
+        &lt;span class="n"&gt;fields&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;username&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;first_name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;last_name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;email&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;FormHelper&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;form_method&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;POST&amp;#39;&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;form_action&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;reverse&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;user_edit_view_name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;form_class&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;form-horizontal&amp;#39;&lt;/span&gt;
+
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+            &lt;span class="n"&gt;Fieldset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                &lt;span class="s"&gt;&amp;#39;Edit Account Info&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="s"&gt;&amp;#39;username&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;first_name&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;last_name&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="s"&gt;&amp;#39;email&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;bio&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;save&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="p"&gt;),&lt;/span&gt;
+            &lt;span class="n"&gt;ButtonHolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                &lt;span class="n"&gt;Submit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;save&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Save&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;css_class&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;btn btn-large btn-primary pull-right&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;super&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;UserEditForm&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Notes:&lt;/strong&gt; We add span10 class to the &amp;quot;bio&amp;quot; field textarea because labels will take 2 spans, and we want the textarea
+fill the entire width. We add class &amp;quot;form-horizontal&amp;quot; to the form, to get the labels position in line with the inputs.
+The button classes are also important.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-magic"&gt;
+&lt;h2&gt;The Magic&lt;/h2&gt;
+&lt;p&gt;Now, we have to tell uni-form to generate html that will be compatible with Bootstrap.
+Lucky enough, uni-form provides us with the ability to override the generic field HTML template.
+Just make a new file called &amp;quot;field.html&amp;quot; inside [template root path]/uni_form/ folder with the
+following content:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;{% if field.is_hidden %}
+    {{ field }}
+{% else %}
+&lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;control-group {% if field.errors %}error{% endif %}&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;label&lt;/span&gt; &lt;span class="na"&gt;for=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;{{ field.auto_id }}&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;control-label&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+        {% if field.field.required %}&lt;span class="nt"&gt;&amp;lt;b&amp;gt;&lt;/span&gt;{% endif %}{{ field.label|safe }}{% if field.field.required %}*&lt;span class="nt"&gt;&amp;lt;/b&amp;gt;&lt;/span&gt;{% endif %}
+    &lt;span class="nt"&gt;&amp;lt;/label&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;controls&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+        {{ field }}
+        {% if field.errors %}
+            &lt;span class="nt"&gt;&amp;lt;span&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;help-inline&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;{% for error in field.errors %}{{ error }}&lt;span class="nt"&gt;&amp;lt;br/&amp;gt;&lt;/span&gt; {% endfor %}&lt;span class="nt"&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
+        {% endif %}
+        {% if field.help_text%}
+            &lt;span class="nt"&gt;&amp;lt;p&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;help-block&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+                {{ field.help_text|safe }}
+            &lt;span class="nt"&gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
+        {% endif %}
+    &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+{% endif %}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This template handles labels, required fields, help text, errors etc. The end result looks something like this:&lt;/p&gt;
+&lt;div class="center-align container"&gt;
+&lt;img alt="../static/uploads/uniform_bootstrap.png" src="../static/uploads/uniform_bootstrap.png" /&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</summary><category term="python"></category><category term="plugin"></category><category term="vim"></category><category term="coding"></category><category term="twitter"></category><category term="bootstrap"></category><category term="uniform"></category></entry><entry><title>New Year's Python Meme 2012</title><link href="http://brainacle.com/new-years-python-meme-2012.html" rel="alternate"></link><updated>2011-12-28T14:01:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-12-28:/new-years-python-meme-2012.html/</id><summary type="html">&lt;p&gt;Following Tarek Ziade's &lt;a class="reference external" href="http://tarekziade.wordpress.com/2011/12/20/new-years-python-meme-2/"&gt;#2012pythonmeme&lt;/a&gt;:&lt;/p&gt;
 &lt;div class="section" id="whats-the-coolest-python-application-framework-or-library-you-have-discovered-in-2011"&gt;
 &lt;h2&gt;1. What’s the coolest Python application, framework or library you have discovered in 2011?&lt;/h2&gt;
 &lt;blockquote&gt;

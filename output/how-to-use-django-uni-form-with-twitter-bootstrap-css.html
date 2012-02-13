@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-        <title>Brainacle - plugin</title>
+        <title>How to use Django Uni-form with Twitter Bootstrap CSS</title>
         <meta charset="utf-8" />
-        <link rel="stylesheet" href=".././theme/css/main.css" type="text/css" />
-        <link href=".././feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Brainacle ATOM Feed" />
+        <link rel="stylesheet" href="./theme/css/main.css" type="text/css" />
+        <link href="./feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Brainacle ATOM Feed" />
         
 
 
@@ -12,11 +12,11 @@
                 <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 
         <!--[if lte IE 7]>
-                <link rel="stylesheet" type="text/css" media="all" href=".././css/ie.css"/>
-                <script src=".././js/IE8.js" type="text/javascript"></script><![endif]-->
+                <link rel="stylesheet" type="text/css" media="all" href="./css/ie.css"/>
+                <script src="./js/IE8.js" type="text/javascript"></script><![endif]-->
 
         <!--[if lt IE 7]>
-                <link rel="stylesheet" type="text/css" media="all" href=".././css/ie6.css"/><![endif]-->
+                <link rel="stylesheet" type="text/css" media="all" href="./css/ie6.css"/><![endif]-->
 
 </head>
 
@@ -31,46 +31,47 @@
 </a>
 
         <header id="banner" class="body">
-                <h1><a href="../."><img src=".././theme/images/brainacle_logo.png" alt="Brainacle "/></a></h1>
+                <h1><a href="."><img src="./theme/images/brainacle_logo.png" alt="Brainacle "/></a></h1>
                 <nav><ul>
-                    <li><a href="../.">Home</a></li>
+                    <li><a href=".">Home</a></li>
                 
                 
                 
-                    <li><a href=".././pages/about.html">About</a></li>
+                    <li><a href="./pages/about.html">About</a></li>
                 
                 
                 
-                    <li ><a href=".././category/Coding.html">Coding</a></li>
+                    <li class="active"><a href="./category/Coding.html">Coding</a></li>
                 
-                    <li ><a href=".././category/Miscellaneous.html">Miscellaneous</a></li>
+                    <li ><a href="./category/Miscellaneous.html">Miscellaneous</a></li>
                 
-                    <li ><a href=".././category/Sys.html">Sys</a></li>
+                    <li ><a href="./category/Sys.html">Sys</a></li>
                 
-                <li><a href=".././archives.html">Archives</a></li>
+                <li><a href="./archives.html">Archives</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
                 
-
-        
-    
-        <aside id="featured" class="body"><article>
-                <h1 class="entry-title"><a href=".././how-to-use-django-uni-form-with-twitter-bootstrap-css.html">How to use Django Uni-form with Twitter Bootstrap CSS</a></h1> 
-                <footer class="post-info">
-                        <abbr class="published" title="2012-02-13T20:58:00">
-                                Mon 13 February 2012
-                        </abbr>
-
-                        
-                        <address class="vcard author">
-                                By <a class="url fn" href="#">Dejan Noveski</a>
-                        </address>
-                        
-                <p>In <a href=".././category/Coding.html">Coding</a>. </p>
-                <p>tags: <a href=".././tag/python.html">python</a> <a href=".././tag/plugin.html">plugin</a> <a href=".././tag/vim.html">vim</a> <a href=".././tag/coding.html">coding</a> <a href=".././tag/twitter.html">twitter</a> <a href=".././tag/bootstrap.html">bootstrap</a> <a href=".././tag/uniform.html">uniform</a> </p>
+<section id="content" class="body">    
+<article>
+        <header> <h1 class="entry-title"><a href="how-to-use-django-uni-form-with-twitter-bootstrap-css.html"
+        rel="bookmark" title="Permalink to How to use Django Uni-form with Twitter Bootstrap CSS">How to use Django Uni-form with Twitter Bootstrap CSS</a></h1> 
+<a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="dekomote">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+ </header>
+        <div class="entry-content">
+        <footer class="post-info">
+                <abbr class="published" title="2012-02-13T20:58:00">
+                    Mon 13 February 2012
+                </abbr>
+                
+                <address class="vcard author">
+                        By <a class="url fn" href="#">Dejan Noveski</a>
+                </address>
+                
+                <p>In <a href="./category/Coding.html">Coding</a>. 
+        <p>tags: <a href="./tag/python.html">python</a> <a href="./tag/plugin.html">plugin</a> <a href="./tag/vim.html">vim</a> <a href="./tag/coding.html">coding</a> <a href="./tag/twitter.html">twitter</a> <a href="./tag/bootstrap.html">bootstrap</a> <a href="./tag/uniform.html">uniform</a> </p>
 </p>
-                </footer><!-- /.post-info -->
-                <p>I'm sure, most of you, know what <a class="reference external" href="https://github.com/pydanny/django-uni-form">django-uni-form</a> is... For those that don't, django-uni-form is a
+        </footer><!-- /.post-info -->
+        <p>I'm sure, most of you, know what <a class="reference external" href="https://github.com/pydanny/django-uni-form">django-uni-form</a> is... For those that don't, django-uni-form is a
 very cool django app that makes form management/styling/layouting a breeze. You can do pretty much anything to a form with it: Split it in formsets, add
 HTML between every element, wrap different elements in different containers etc. Also, it produces great HTML, and it manages the &lt;form&gt; tag, as well
 as the submit/reset buttons. If you aren't using it, you should definitely start.</p>
@@ -182,142 +183,28 @@ following content:</p>
 </pre></div>
 <p>This template handles labels, required fields, help text, errors etc. The end result looks something like this:</p>
 <div class="center-align container">
-<img alt=".././static/../static/uploads/uniform_bootstrap.png" src=".././static/../static/uploads/uniform_bootstrap.png" />
+<img alt="./static/../static/uploads/uniform_bootstrap.png" src="./static/../static/uploads/uniform_bootstrap.png" />
 </div>
 </div>
 
-        </article></aside><!-- /#featured -->
+        </div><!-- /.entry-content -->
         
-            <section id="content" class="body">
-                <h1>Other articles</h1>
-                <hr />
-                    <ol id="posts-list" class="hfeed">
+        <div class="comments">
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "how-to-use-django-uni-form-with-twitter-bootstrap-css.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://Brainacle.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
         
-    
-        
-     
-        <li><article class="hentry">    
-                <header>
-                        <h1><a href=".././how-to-write-vim-plugins-with-python.html" rel="bookmark" title="Permalink to How to write vim plugins with python">How to write vim plugins with python</a></h1>
-                </header>
-                
-                <div class="entry-content">
-                <footer class="post-info">
-                        <abbr class="published" title="2011-02-03T14:58:00">
-                                Thu 03 February 2011
-                        </abbr>
 
-                        <address class="vcard author">
-                                By <a class="url fn" href="#">Dejan Noveski</a>
-                        </address>
-                        <p> In <a href=".././category/Coding.html">Coding</a></p>
-                        <p>tags: <a href=".././tag/python.html">python</a> <a href=".././tag/plugin.html">plugin</a> <a href=".././tag/vim.html">vim</a> <a href=".././tag/coding.html">coding</a> </p>
-</p>
-                    <p></p>
-                </footer><!-- /.post-info -->
-                <p>I'm not going to dive into how good or extendible Vim is. If you are reading this
-article, you probably know that. The thing that makes Vim so good, is the
-scripting environment behind it called VimL. Using this scripting language,
-you can write any functionality/plugin you need ...</p>
-                <a class="readmore" href=".././how-to-write-vim-plugins-with-python.html">read more</a>
-                </div><!-- /.entry-content -->
-        </article></li>
-    
-        
-     
-        <li><article class="hentry">    
-                <header>
-                        <h1><a href=".././w3cvalidatevim.html" rel="bookmark" title="Permalink to W3cValidate.vim">W3cValidate.vim</a></h1>
-                </header>
-                
-                <div class="entry-content">
-                <footer class="post-info">
-                        <abbr class="published" title="2011-01-23T00:55:00">
-                                Sun 23 January 2011
-                        </abbr>
-
-                        <address class="vcard author">
-                                By <a class="url fn" href="#">Dejan Noveski</a>
-                        </address>
-                        <p> In <a href=".././category/Coding.html">Coding</a></p>
-                        <p>tags: <a href=".././tag/vim.html">vim</a> <a href=".././tag/plugin.html">plugin</a> <a href=".././tag/coding.html">coding</a> </p>
-</p>
-                    <p></p>
-                </footer><!-- /.post-info -->
-                <p>W3cValidate.vim is a plugin that enables buffer/url validation using the <a class="reference external" href="http://validator.w3.org">W3 Validator</a> API.</p>
-<div class="section" id="usage">
-<h2>Usage</h2>
-<p>Copy w3cvalidate.vim file inside plugin directory, source it or restart Vim. Use</p>
-<blockquote>
-<p>:W3cValidate to validate the current buffer</p>
-<p>:W3cValidate &quot;[url_here]&quot; to validate a hosted page</p>
-<p>:W3cValidateDT &quot;[doctype]&quot; to validate the buffer using the ...</p></blockquote></div>
-                <a class="readmore" href=".././w3cvalidatevim.html">read more</a>
-                </div><!-- /.entry-content -->
-        </article></li>
-    
-        
-     
-        <li><article class="hentry">    
-                <header>
-                        <h1><a href=".././jqcarousel-three-d.html" rel="bookmark" title="Permalink to JqCarousel Three-D">JqCarousel Three-D</a></h1>
-                </header>
-                
-                <div class="entry-content">
-                <footer class="post-info">
-                        <abbr class="published" title="2010-01-27T19:59:00">
-                                Wed 27 January 2010
-                        </abbr>
-
-                        <address class="vcard author">
-                                By <a class="url fn" href="#">Dejan Noveski</a>
-                        </address>
-                        <p> In <a href=".././category/Coding.html">Coding</a></p>
-                        <p>tags: <a href=".././tag/javascript.html">javascript</a> <a href=".././tag/jquery.html">jquery</a> <a href=".././tag/plugin.html">plugin</a> <a href=".././tag/ui.html">ui</a> </p>
-</p>
-                    <p></p>
-                </footer><!-- /.post-info -->
-                <p>This plugin was coded to prove a point. We saw another similar plugin like this,
-but it was only for sale with obfuscated code, so I decided to write it and opensource it.
-It doesn't have the limited functionality and the custom implementation of the paid ones,
-it is ...</p>
-                <a class="readmore" href=".././jqcarousel-three-d.html">read more</a>
-                </div><!-- /.entry-content -->
-        </article></li>
-    
-        
-     
-        <li><article class="hentry">    
-                <header>
-                        <h1><a href=".././livescape-jquery-live-landscape.html" rel="bookmark" title="Permalink to Livescape jQuery Live Landscape">Livescape jQuery Live Landscape</a></h1>
-                </header>
-                
-                <div class="entry-content">
-                <footer class="post-info">
-                        <abbr class="published" title="2009-12-15T19:56:00">
-                                Tue 15 December 2009
-                        </abbr>
-
-                        <address class="vcard author">
-                                By <a class="url fn" href="#">Dejan Noveski</a>
-                        </address>
-                        <p> In <a href=".././category/Coding.html">Coding</a></p>
-                        <p>tags: <a href=".././tag/javascript.html">javascript</a> <a href=".././tag/jquery.html">jquery</a> <a href=".././tag/plugin.html">plugin</a> <a href=".././tag/code.html">code</a> <a href=".././tag/ui.html">ui</a> </p>
-</p>
-                    <p></p>
-                </footer><!-- /.post-info -->
-                <p>The idea behind this plugin is to have some kind of landscape container that
-will contain objects moving inside of it e.g. sky with the clouds moving.
-The plugin is built simple, has simple implementation, it is very easy to
-use, yet very flexible. You only need the landscape ...</p>
-                <a class="readmore" href=".././livescape-jquery-live-landscape.html">read more</a>
-                </div><!-- /.entry-content -->
-        </article></li>
-    
-
-</ol><!-- /#posts-list -->
-</section><!-- /#content -->
-
+</article>
+</section>
 
         <section id="extras" class="body">
         
@@ -340,7 +227,7 @@ use, yet very flexible. You only need the landscape ...</p>
                 <div class="social">
                         <h2>social</h2>
                         <ul>
-                            <li><a href=".././feeds/all.atom.xml" rel="alternate">atom feed</a></li>
+                            <li><a href="./feeds/all.atom.xml" rel="alternate">atom feed</a></li>
                             
 
                         
