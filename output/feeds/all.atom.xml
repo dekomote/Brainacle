@@ -1,5 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Brainacle</title><link href="http://brainacle.com" rel="alternate"></link><link href="http://brainacle.com/feeds/all.atom.xml" rel="self"></link><id>http://brainacle.com</id><updated>2012-02-13T20:58:00Z</updated><entry><title>How to use Django Uni-form with Twitter Bootstrap CSS</title><link href="http://brainacle.com/how-to-use-django-uni-form-with-twitter-bootstrap-css.html" rel="alternate"></link><updated>2012-02-13T20:58:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-02-13:/how-to-use-django-uni-form-with-twitter-bootstrap-css.html/</id><summary type="html">&lt;p&gt;I'm sure, most of you, know what &lt;a class="reference external" href="https://github.com/pydanny/django-uni-form"&gt;django-uni-form&lt;/a&gt; is... For those that don't, django-uni-form is a
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Brainacle</title><link href="http://brainacle.com" rel="alternate"></link><link href="http://brainacle.com/feeds/all.atom.xml" rel="self"></link><id>http://brainacle.com</id><updated>2012-04-12T00:03:00Z</updated><entry><title>KDE vs. Gnome - A Subjective View : UPDATE</title><link href="http://brainacle.com/kde-vs-gnome-a-subjective-view-update.html" rel="alternate"></link><updated>2012-04-12T00:03:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-04-12:/kde-vs-gnome-a-subjective-view-update.html/</id><summary type="html">&lt;p&gt;Few months ago, I &lt;a class="reference external" href="/kde-vs-gnome-a-subjective-view.html"&gt;wrote an article&lt;/a&gt; on my view on the KDE vs. Gnome - Pros, Cons, stuff that irritates me and stuff
+that's good. At that time, I was still a Gnome user. But after a lot of frustrations with the Gnome desktop,
+I switched to KDE and never went back to this date. After KDE SC 4.8 dropped in. Archlinux immediately picked it up, as
+always, so I had a lot of time to test drive it and see how it preforms.&lt;/p&gt;
+&lt;p&gt;This update is about my view on the updated KDE 4.8 and everything I did to make my KDE experience better (things that were on the cons list last time).
+As a bonus, a bit of ranting about the current state of Linux on the Desktop.&lt;/p&gt;
+&lt;div class="section" id="testing-ground"&gt;
+&lt;h2&gt;Testing Ground&lt;/h2&gt;
+&lt;p&gt;Another thing that changed in the meantime, was my workstation:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;i3-2120 3.3GHz&lt;/p&gt;
+&lt;p&gt;Asus P8Z68-V LX&lt;/p&gt;
+&lt;p&gt;8GB ddr3 ram&lt;/p&gt;
+&lt;p&gt;Ati Radeon HD6770 1GB DDR5 with fglrx (binary driver AND radeon) + NVidia GT440 + HD2000 - tested on all cards&lt;/p&gt;
+&lt;p&gt;1x22&amp;quot;&amp;#64;1680x1050 + 1x24&amp;quot;&amp;#64;1920x1200 monitors&lt;/p&gt;
+&lt;p&gt;Archlinux, latest updates and some Sabayon KDE tests&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="section" id="enter-kde-4-8"&gt;
+&lt;h3&gt;Enter KDE 4.8&lt;/h3&gt;
+&lt;p&gt;On first looks, KDE 4.8 is not too much different from 4.7. The panel is reworked a bit, so it looks slicker, dolphin does tricks when resizing,
+tweak here and there. The real update KDE 4.8 brings is increased performance. It's truly faster. For the first time, OpenGL renderer is faster than
+XRender, even with VSync on. Woot! Now, I can enable desktop effects and don't worry about performance drop. On all cards and all drivers!&lt;/p&gt;
+&lt;p&gt;This might not strike you as an update, but at this moment, it's joy to me - KDE still keeps the original desktop metaphor as primary, and adds on that
+an even better &lt;strong&gt;optional&lt;/strong&gt; interface, optimized for small/touch displays. I bolded &lt;strong&gt;optional&lt;/strong&gt; because everybody seems trigger happy when dealing with touch displays,
+destroying the good ole' desktop in the process (yes. I'm looking at you Gnome. You too Ubuntu!). Anyway, for the interested, check out &lt;a class="reference external" href="http://community.kde.org/Plasma/Active"&gt;Plasma Active&lt;/a&gt;.&lt;/p&gt;
+&lt;div class="section" id="dolphin"&gt;
+&lt;h4&gt;Dolphin&lt;/h4&gt;
+&lt;p&gt;Still no mouse back-button. A bit bummer, but i learned to live with it. At least, dolphin has better UI than any GTK based file manager, so
+going back and forward, up and down, is easy with mouse/keyboard. You could try the hack with xbindkeys, but apparently, it hates my Razer Deathadder.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="kio"&gt;
+&lt;h4&gt;KIO&lt;/h4&gt;
+&lt;p&gt;Nothing has changed here. And I doubt anything will, so, I did a few tweaks - I'm using smb4k for smb hosts, and VLC has implemented KIO slaves!
+I can live with this and so can you.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="kde-wallet"&gt;
+&lt;h4&gt;KDE-Wallet&lt;/h4&gt;
+&lt;p&gt;I was under the impression that KSecretService will change things, but it wasn't what I was hoping for. So, I made a bit of tweaking here too.
+I use keychain and add &lt;strong&gt;eval `keychain --eval --agents ssh -Q --quiet id_dsa`&lt;/strong&gt; to my .zshrc/.bashrc. Then, if you use openssh ask pass, KDE wallet can
+save the password. Works like a charm. Eat that gnome keyring!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="general-performance-bugs"&gt;
+&lt;h4&gt;General / Performance bugs&lt;/h4&gt;
+&lt;p&gt;A lot has changed here. There are no corruptions (to date) in the plasmoids, panels etc. All works good. Resizing dolphin is fast (except with some NVidias+blobs).
+There was a significant lag when one starts dragging window that's not focused. It works great now.&lt;/p&gt;
+&lt;p&gt;The default application bundle is still better than Gnome's (seriously, compare Evince to Okular, Brasero to K3b, Gwenview to any gnome image viewer).&lt;/p&gt;
+&lt;p&gt;It still looks frickin' GOOD! It's so good looking and configurable, Gnome looks like an OS intended for some child-centric laptop. You can tweak every little bit of it.
+And they should start selling this point! Average new user won't be aware of this and might revert him from KDE. Seriously guys, Moar marketing nao!&lt;/p&gt;
+&lt;div class="center-align container"&gt;
+&lt;img alt="../static/uploads/beauty.png" src="../static/uploads/beauty.png" /&gt;
+&lt;/div&gt;
+&lt;p&gt;There were some screenshots of KDE made to look like Unity/Gnome3. If you want that look, you can &lt;a class="reference external" href="http://maketecheasier.com/give-kde-desktop-ubuntu-makeover/2011/11/23"&gt;have it&lt;/a&gt; .&lt;/p&gt;
+&lt;p&gt;And the most important, it didn't betray the users that respect and like the desktop metaphor, just so it can be in the
+competition for the best UI for the tablets/phones/TV. It still is - with Plasma Active, and by the looks of it, it already scores big time,
+but they stayed loyal to the old ways. The way a desktop is meant to be.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="gnome-3-unity"&gt;
+&lt;h3&gt;Gnome 3 / Unity&lt;/h3&gt;
+&lt;p&gt;Sadly, nothing has changed here. They really stuck with it. Good for you guys! One thing tho. When a user needs 30 different
+apps to change the UI, you aren't doing a good work. I've been a PC and Linux user for many years, I have friends with the same/similar
+experience, and neither one of them has said good things about G3/Unity. Few friends were so appalled by the current state,
+they switched to Mac after all these years (KDE was not an option because of the issues mentioned in the previous post).&lt;/p&gt;
+&lt;p&gt;The only &amp;quot;serious&amp;quot; DE that promises, is Cinamon by Linux Mint dudes, but:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;1: It's a long shot. The community working on it is small and poorly financed&lt;/p&gt;
+&lt;p&gt;2: It's new. XFCE has been on the scene longer, yet it can't come even remotely close to the usage of Gnome/KDE&lt;/p&gt;
+&lt;p&gt;3: It's Gnome3 at it's core!&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;And mate...&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="bonus-my-view-on-the-whole-desktop-thing"&gt;
+&lt;h3&gt;Bonus: My view on the whole Desktop thing&lt;/h3&gt;
+&lt;p&gt;After a long time of me ranting about the slug that was KDE compared to Gnome, I caved in and moved (for good i hope). I owe some people apologies. KDE community is focused on
+&lt;strong&gt;building&lt;/strong&gt; and &lt;strong&gt;improving&lt;/strong&gt; stuff. Not tearing the old things and starting from scratch. I know, I know. KDE 3 to 4. Now, think about how big of a change was that, and how much
+Gnome 2 changed when it hit 3. We all owe KDE apologies!&lt;/p&gt;
+&lt;p&gt;As a bonus, here are some of my thoughts on Linux on the Desktop:&lt;/p&gt;
+&lt;p&gt;No, it's not the year of Linux for the Desktop. It's (and will be) the year of Linux for the smartphone. If we want to live to see Linux on the desktop,
+&lt;strong&gt;PEOPLE SHOULD USE IT!&lt;/strong&gt;. A lot of people say they use Linux, but they don't. Either they use it in VM or dual boot it with Windows as a secondary - testing machine.&lt;/p&gt;
+&lt;p&gt;In order for people to use Linux on the desktop, a lot of things have to change.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;First and foremost, stop the effin' fragmentation! 2 DEs were enough. 4 are a lot. 6 are shaving yaks. KDE is doing the right thing at the moment. Switch to it. You'll thank me later. That will make some of the popular - entry-level distros to support their KDE flavors more and we'll stop bitching about the damned tablet mentality.&lt;/p&gt;
+&lt;p&gt;Second: Great Unified Package manager. See Mac's bundles. People have big HDDs now, you can ship the libs in the same folder even if the lib is present in the system.&lt;/p&gt;
+&lt;p&gt;Third: Stop focusing on minor things and fix the Elephant. Ubuntu folk were so excited about the new test printer template, but I can't see it because I can't
+make my printer work on Linux!&lt;/p&gt;
+&lt;p&gt;Fourth: For Buddha's sake, stop the support for antics. There's enough backlog of every distribution in history to power anything from Eniac to a super modern workstation.
+Slim down on support for old hardware.&lt;/p&gt;
+&lt;p&gt;And most important: Stop being purists and elitists. So what if a distro ships with non-free drivers? Boo-hoo!
+Are you trying to chase even those that stick to Linux? Personally, I've been FOSS supporter for a lot of time, but
+even I don't want to limit myself because there is no (truly) free support for my hardware. NVidia/Ati blobs are free of charge - aren't they?
+So what if a user uses DE instead of Awesome/ratpoison/dwm/xmonad? Not all Linux users are sysadmins or Haskell hackers, you know. Don't call them newbs.
+Focus a bit more to the user. Ubuntu did that, and was reign of the Linux on the desktop until the Great Tabletation. They had the chance, and they blew it.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Believe me, I want to see Linux in the top percentages of usage as much as the next guy, but in order for that to happen, I have to make my wife, my brother, my aunt, my cousins to use Linux.
+It's a tough task. They can't install apps, they can't install Linux on their cheap laptops, they can't make their wi-fi/printer work, &lt;strong&gt;they can't find the start button!&lt;/strong&gt; And they make for the majority
+of users! Tech savvy people are small percentage, and they tend to focus on the work instead hacking config files, compiling mesa stacks, chasing windows and hot spots for activating the launchers.
+Make it work OOB. Let's copy Windows for a change :) (just kidding... or am I).&lt;/p&gt;
+&lt;p&gt;P.S. -again- For the purists s/Linux/Gnu\/Linux/&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</summary><category term="kde"></category><category term="gnome"></category><category term="desktop"></category><category term="linux"></category><category term="miscellaneous"></category></entry><entry><title>How to use Django Uni-form with Twitter Bootstrap CSS</title><link href="http://brainacle.com/how-to-use-django-uni-form-with-twitter-bootstrap-css.html" rel="alternate"></link><updated>2012-02-13T20:58:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-02-13:/how-to-use-django-uni-form-with-twitter-bootstrap-css.html/</id><summary type="html">&lt;p&gt;I'm sure, most of you, know what &lt;a class="reference external" href="https://github.com/pydanny/django-uni-form"&gt;django-uni-form&lt;/a&gt; is... For those that don't, django-uni-form is a
 very cool django app that makes form management/styling/layouting a breeze. You can do pretty much anything to a form with it: Split it in formsets, add
 HTML between every element, wrap different elements in different containers etc. Also, it produces great HTML, and it manages the &amp;lt;form&amp;gt; tag, as well
 as the submit/reset buttons. If you aren't using it, you should definitely start.&lt;/p&gt;
