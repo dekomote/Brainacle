@@ -1,5 +1,258 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Brainacle</title><link href="http://brainacle.com" rel="alternate"></link><link href="http://brainacle.com/feeds/Miscellaneous.atom.xml" rel="self"></link><id>http://brainacle.com</id><updated>2012-04-12T00:03:00Z</updated><entry><title>KDE vs. Gnome - A Subjective View : UPDATE</title><link href="http://brainacle.com/kde-vs-gnome-a-subjective-view-update.html" rel="alternate"></link><updated>2012-04-12T00:03:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-04-12:/kde-vs-gnome-a-subjective-view-update.html/</id><summary type="html">&lt;p&gt;Few months ago, I &lt;a class="reference external" href="/kde-vs-gnome-a-subjective-view.html"&gt;wrote an article&lt;/a&gt; on my view on the KDE vs. Gnome - Pros, Cons, stuff that irritates me and stuff
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Brainacle</title><link href="http://brainacle.com" rel="alternate"></link><link href="http://brainacle.com/feeds/Miscellaneous.atom.xml" rel="self"></link><id>http://brainacle.com</id><updated>2012-05-27T21:03:00Z</updated><entry><title>Multiseating with KDE and XBMC Like a boss</title><link href="http://brainacle.com/multiseating-with-kde-and-xbmc-like-a-boss.html" rel="alternate"></link><updated>2012-05-27T21:03:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-05-27:/multiseating-with-kde-and-xbmc-like-a-boss.html/</id><summary type="html">&lt;p&gt;Linux multi-seat setup is a setup where multiple users can use the same PC simultaneously.
+You have a monitor and input devices for each of those users, and a separate X session for all.
+It's a PITA to set up if you don't know what to do, but the end result is legendary.
+Trust me, I spent countless hours setting up mine, but it was worth it.&lt;/p&gt;
+&lt;div class="section" id="why"&gt;
+&lt;h2&gt;Why?&lt;/h2&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;You have a spare hardware, and you want to utilize it&lt;/li&gt;
+&lt;li&gt;You have 1 PC, but you want your sibling/SO/family member to have it's own independent environment&lt;/li&gt;
+&lt;li&gt;You want to add a TV or multimedia session monitor to your setup that will be independent of your current desktop session (we'll focus on this)&lt;/li&gt;
+&lt;li&gt;It's awesome!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="section" id="what-do-i-need"&gt;
+&lt;h2&gt;What do I need?&lt;/h2&gt;
+&lt;p&gt;First off, you need a PC with at least 2 graphic cards. Any combination is good. N discrete GPUs or 1 integrated + N discrete.
+If you mix graphic card vendors, try to use the FOSS drivers. I haven't tested multiseating with mixed binary drivers or blobs and FOSS drivers. I'll update the post once I test this.&lt;/p&gt;
+&lt;p&gt;You need at least 1 monitor per seat, or you can switch one monitor back and forward. In the guide (my setup), I use 3 monitors.
+One dual-head seat and one single-monitor seat. At least one monitor per GPU.&lt;/p&gt;
+&lt;p&gt;You'll need separate inputs for each seat. They are optional, but how would that work? Try to, at least, get another mouse.&lt;/p&gt;
+&lt;p&gt;You'll need advanced knowledge on Linux. Sorry, but this is an advanced topic, so If you don't know how to set up xorg.conf, you are
+in for a lot of frustrations.&lt;/p&gt;
+&lt;p&gt;Iron will and nerves of steel: It might be a bumpy ride, so brace yourself.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="my-scenario"&gt;
+&lt;h2&gt;My scenario&lt;/h2&gt;
+&lt;p&gt;I recently purchased a TV and wanted to hook it up to the PC, pop XBMC on it, and, if possible, make it work with separate user/input/session. A perfect use-case for a multi-seat. I already had a dual-head setup with an ATI Radeon HD6770. My PC has
+an integrated HD2000 GPU (i3-2120) which I could use for the second seat. Pics:&lt;/p&gt;
+&lt;div class="center-align container"&gt;
+&lt;img alt="../static/uploads/ms1.jpg" src="../static/uploads/ms1.jpg" /&gt;
+&lt;p&gt;2 monitors on the Ati, TV tied to the onboard graphic card via HDMI&lt;/p&gt;
+&lt;img alt="../static/uploads/ms2.jpg" src="../static/uploads/ms2.jpg" /&gt;
+&lt;p&gt;Main seat - dual-head, KDE session&lt;/p&gt;
+&lt;img alt="../static/uploads/ms3.jpg" src="../static/uploads/ms3.jpg" /&gt;
+&lt;p&gt;XBMC running on the TV in separate session/seat&lt;/p&gt;
+&lt;img alt="../static/uploads/ms4.jpg" src="../static/uploads/ms4.jpg" /&gt;
+&lt;p&gt;KDE running on the TV in separate session/seat&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;I could have gone with the triple-head setup, but:&lt;/p&gt;
+&lt;ol class="arabic simple"&gt;
+&lt;li&gt;It puts a lot of strain to the main GPU&lt;/li&gt;
+&lt;li&gt;Vsync is out of whack&lt;/li&gt;
+&lt;li&gt;It bugs out often&lt;/li&gt;
+&lt;li&gt;All my monitors are different sizes/resolutions.&lt;/li&gt;
+&lt;li&gt;Running XBMC on fullscreen on the third monitor is a pain.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;With multiseat, I run xbmc automatically, fullscreen, in a separate session and a separate user.&lt;/p&gt;
+&lt;p&gt;My distro is Archlinux. The configurations or config file paths might differ in other distros, but it shouldn't be a problem.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="backup-all-the-files-you-ll-be-changing-before-you-start-changing-them"&gt;
+&lt;h2&gt;&lt;strong&gt;Backup all the files you'll be changing before you start changing them.&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Lets start configuring!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="xorg-configuration"&gt;
+&lt;h2&gt;Xorg Configuration&lt;/h2&gt;
+&lt;p&gt;Before you start, make sure you have a fresh distro. 3.2+ kernel, xorg 1.10+, evdev drivers for mouse and keyboard.&lt;/p&gt;
+&lt;div class="section" id="finding-out-busid-of-the-gpus"&gt;
+&lt;h3&gt;Finding out BusId of the GPUs&lt;/h3&gt;
+&lt;p&gt;We use BusId of the GPU to configure the &amp;quot;Device&amp;quot; parts in xorg.conf. The BusID is a string that looks like &amp;quot;PCI:1:0:0&amp;quot;.
+To find out the right BusID, use &lt;strong&gt;lspci | egrep &amp;quot;VGA|Display&amp;quot;&lt;/strong&gt;. The output should look something like this:&lt;/p&gt;
+&lt;blockquote&gt;
+00:02.0 Display controller: Intel Corporation 2nd Generation Core Processor Family Integrated Graphics Controller (rev 09)
+01:00.0 VGA compatible controller: Advanced Micro Devices [AMD] nee ATI Juniper XT [AMD Radeon HD 6000 Series]&lt;/blockquote&gt;
+&lt;p&gt;The output is pretty much straightforward. You can see which Bus is which GPU. So, based on this, your BusIDs would be
+&lt;strong&gt;PCI:0:2:0&lt;/strong&gt; and &lt;strong&gt;PCI:1:0:0&lt;/strong&gt;. Save those strings somewhere, you'll need them later.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="finding-out-device-path-of-the-input-devices"&gt;
+&lt;h3&gt;Finding out Device Path of the Input devices&lt;/h3&gt;
+&lt;p&gt;Plug in all the inputs you'll be using. Use &lt;strong&gt;ls /dev/input/by-id&lt;/strong&gt;. The output should look like this:&lt;/p&gt;
+&lt;blockquote&gt;
+usb-Logitech_Logitech_Illuminated_Keyboard-event-if01
+usb-Logitech_Logitech_Illuminated_Keyboard-event-kbd
+usb-Logitech_USB_RECEIVER-event-mouse
+usb-Razer_Razer_DeathAdder-event-mouse&lt;/blockquote&gt;
+&lt;p&gt;From this list, you can identify your inputs. If you have same vendor/model inputs, you can reference them by
+bus and device ID, and even by the simplest form &lt;strong&gt;/dev/input/eventX&lt;/strong&gt;. I suggest you use some specific referencing - by id or by device id.&lt;/p&gt;
+&lt;p&gt;So, my device paths are:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;/dev/input/by-id/usb-Logitech_Logitech_Illuminated_Keyboard-event-kbd&lt;/li&gt;
+&lt;li&gt;/dev/input/by-id/usb-Logitech_USB_RECEIVER-event-mouse&lt;/li&gt;
+&lt;li&gt;/dev/input/by-id/usb-Razer_Razer_DeathAdder-event-mouse&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;That's all we need for now. Let's pull all of this in xorg.conf:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configuring-x"&gt;
+&lt;h3&gt;Configuring X&lt;/h3&gt;
+&lt;p&gt;This is the most important step in making a multiseat. We work solely on xorg.conf.&lt;/p&gt;
+&lt;p&gt;Open /etc/X11/xorg.conf for editing, as root user. If you don't have that file, just create it. &lt;strong&gt;Note:&lt;/strong&gt;
+Different distros might have different xorg.conf path. Most of the distros use /etc/X11/.&lt;/p&gt;
+&lt;p&gt;We'll use a simple, barebone xorg configuration, and let X autoconfigure everything else:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;Section &lt;span class="s2"&gt;&amp;quot;ServerFlags&amp;quot;&lt;/span&gt;
+    &lt;span class="c"&gt;# Xorg will otherwise not start if it can&amp;#39;t find a mouse to use. Better safe than sorry.&lt;/span&gt;
+    Option  &lt;span class="s2"&gt;&amp;quot;AllowMouseOpenFail&amp;quot;&lt;/span&gt;    &lt;span class="s2"&gt;&amp;quot;true&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;InputDevice&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#Configuring the keyboard for the main seat&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;keyboard0&amp;quot;&lt;/span&gt;
+        Driver &lt;span class="s2"&gt;&amp;quot;evdev&amp;quot;&lt;/span&gt;
+        Option &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/dev/input/by-id/usb-Logitech_Logitech_Illuminated_Keyboard-event-kbd&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;InputDevice&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#Configuring the mouse for the main seat&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;mouse0&amp;quot;&lt;/span&gt;
+        Driver &lt;span class="s2"&gt;&amp;quot;evdev&amp;quot;&lt;/span&gt;
+        Option &lt;span class="s2"&gt;&amp;quot;Protocol&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Auto&amp;quot;&lt;/span&gt;
+        Option &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/dev/input/by-id/usb-Razer_Razer_DeathAdder-event-mouse&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;InputDevice&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#Configuring the mouse for the second seat&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;mouse1&amp;quot;&lt;/span&gt;
+        Driver &lt;span class="s2"&gt;&amp;quot;evdev&amp;quot;&lt;/span&gt;
+        Option &lt;span class="s2"&gt;&amp;quot;Protocol&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Auto&amp;quot;&lt;/span&gt;
+        Option &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/dev/input/by-id/usb-Logitech_USB_RECEIVER-event-mouse&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#Configuring the discrete GPU&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;radeon&amp;quot;&lt;/span&gt;
+        Driver &lt;span class="s2"&gt;&amp;quot;radeon&amp;quot;&lt;/span&gt; &lt;span class="c"&gt;#Or a driver specific to your GPU - &amp;quot;nvidia&amp;quot;&lt;/span&gt;
+        BusId &lt;span class="s2"&gt;&amp;quot;PCI:1:0:0&amp;quot;&lt;/span&gt; &lt;span class="c"&gt;#From the BusID section above&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;intel&amp;quot;&lt;/span&gt;
+        Driver &lt;span class="s2"&gt;&amp;quot;intel&amp;quot;&lt;/span&gt; &lt;span class="c"&gt;#Or a driver specific to your GPU - &amp;quot;nvidia&amp;quot;, &amp;quot;radeon&amp;quot;&lt;/span&gt;
+        BusId &lt;span class="s2"&gt;&amp;quot;PCI:0:2:0&amp;quot;&lt;/span&gt; &lt;span class="c"&gt;#From the BusID section above&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;Screen&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;# Configuring the screen for the main seat&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;screen0&amp;quot;&lt;/span&gt;
+        Device &lt;span class="s2"&gt;&amp;quot;radeon&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;Screen&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;# Configuring the screen for the second seat&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;screen1&amp;quot;&lt;/span&gt;
+        Device &lt;span class="s2"&gt;&amp;quot;intel&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;ServerLayout&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#Configuring the Server layout for the main seat&lt;/span&gt;
+        Identifier      &lt;span class="s2"&gt;&amp;quot;main&amp;quot;&lt;/span&gt;
+        Screen          &lt;span class="s2"&gt;&amp;quot;screen0&amp;quot;&lt;/span&gt;       0                   0
+        InputDevice     &lt;span class="s2"&gt;&amp;quot;mouse0&amp;quot;&lt;/span&gt;        &lt;span class="s2"&gt;&amp;quot;CorePointer&amp;quot;&lt;/span&gt;
+        InputDevice     &lt;span class="s2"&gt;&amp;quot;keyboard0&amp;quot;&lt;/span&gt;     &lt;span class="s2"&gt;&amp;quot;CoreKeyboard&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#This is a must - otherwise, it will add all the inputs to this seat&lt;/span&gt;
+        Option          &lt;span class="s2"&gt;&amp;quot;AutoAddDevices&amp;quot;&lt;/span&gt;        &lt;span class="s2"&gt;&amp;quot;off&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;ServerLayout&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#Configuring the Server layout for the second seat&lt;/span&gt;
+        Identifier      &lt;span class="s2"&gt;&amp;quot;tv&amp;quot;&lt;/span&gt;
+        Screen          &lt;span class="s2"&gt;&amp;quot;screen1&amp;quot;&lt;/span&gt;       0                   0
+        InputDevice     &lt;span class="s2"&gt;&amp;quot;mouse1&amp;quot;&lt;/span&gt;        &lt;span class="s2"&gt;&amp;quot;CorePointer&amp;quot;&lt;/span&gt;
+
+        &lt;span class="c"&gt;#If you have a spare keyboard, make another InputDevice entry for it and add it here&lt;/span&gt;
+        &lt;span class="c"&gt;#InputDevice     &amp;quot;keyboard1&amp;quot;     &amp;quot;CoreKeyboard&amp;quot;&lt;/span&gt;
+
+        &lt;span class="c"&gt;#This is a must - otherwise, it will add all the inputs to this seat&lt;/span&gt;
+        Option          &lt;span class="s2"&gt;&amp;quot;AutoAddDevices&amp;quot;&lt;/span&gt;        &lt;span class="s2"&gt;&amp;quot;off&amp;quot;&lt;/span&gt;
+EndSection
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Next, we configure the session manager&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configuring-kdm"&gt;
+&lt;h3&gt;Configuring KDM&lt;/h3&gt;
+&lt;p&gt;Since I use KDE, I'll show you how to configure KDM. If you use other DE, please google around, it's mostly similar to this.&lt;/p&gt;
+&lt;p&gt;Open &lt;strong&gt;/usr/share/config/kdm/kdmrc&lt;/strong&gt; for editing, as root.&lt;/p&gt;
+&lt;p&gt;In the [General] section, change the &lt;strong&gt;ReserveServers&lt;/strong&gt; and &lt;strong&gt;StaticServers&lt;/strong&gt; as follows:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;ReserveServers&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:2,:3
+&lt;span class="nv"&gt;StaticServers&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:0,:1
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;At the end, add this snippet:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;[&lt;/span&gt;X-:0-Core&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;ServerArgsLocal&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;-nolisten tcp -layout main
+
+&lt;span class="o"&gt;[&lt;/span&gt;X-:1-Core&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;ServerArgsLocal&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;-nolisten tcp -layout tv -sharevts -novtswitch
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;If you want a user to auto-login on the second seat (in my case, I want the xbmc user to autologin),  add this to the file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;[&lt;/span&gt;X-:1-Core&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;AutoLoginEnable&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt;
+&lt;span class="nv"&gt;AutoLoginLocked&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;false&lt;/span&gt;
+&lt;span class="nv"&gt;AutoLoginUser&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;xbmc
+&lt;span class="nv"&gt;ClientLogFile&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;.xsession-errors
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And, if you want a custom session to be executed, not the default - KDE, you'll need 2 things:&lt;/p&gt;
+&lt;ol class="arabic simple"&gt;
+&lt;li&gt;A shell script that would execute the session (exec xbmc-standalone), marked executable&lt;/li&gt;
+&lt;li&gt;Add a line in &lt;strong&gt;[X-:1-Core]&lt;/strong&gt; - &lt;strong&gt;Session=/path/to/that/shell/script&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;That's it for KDM. If you followed and saved everything, you can restart X now. You don't need to reboot (but do it anyway).
+Next login, you should see different sessions on different GPUs&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;If you have any problems starting the X server, just move or remove xorg.conf, and revert kdmrc. Keep backups of the old files, so you can revert fast&lt;/strong&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="fine-tuning"&gt;
+&lt;h2&gt;Fine tuning&lt;/h2&gt;
+&lt;p&gt;Now, I have a KDE session on my main seat, and xbmc session on my second seat. But no sound...
+Making the sound work on a multi-seat system is quite difficult and it differs from the type of sound architecture.&lt;/p&gt;
+&lt;p&gt;In my scenario, I feed my audio through the HDMI cable to the TV, and it's quite easy to do so. I have pulseaudio on my system.&lt;/p&gt;
+&lt;div class="section" id="tweaking-hdmi-audio-for-xbmc"&gt;
+&lt;h3&gt;Tweaking HDMI audio for XBMC&lt;/h3&gt;
+&lt;p&gt;You need to find the alsa sinks of your system. To do that, use &lt;strong&gt;aplay -l&lt;/strong&gt;. The output should be something like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;**** List of PLAYBACK Hardware Devices ****
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 0: ALC887-VD Analog &lt;span class="o"&gt;[&lt;/span&gt;ALC887-VD Analog&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 1: ALC887-VD Digital &lt;span class="o"&gt;[&lt;/span&gt;ALC887-VD Digital&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 3: HDMI 0 &lt;span class="o"&gt;[&lt;/span&gt;HDMI 0&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 7: HDMI 1 &lt;span class="o"&gt;[&lt;/span&gt;HDMI 1&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 1: Generic &lt;span class="o"&gt;[&lt;/span&gt;HD-Audio Generic&lt;span class="o"&gt;]&lt;/span&gt;, device 3: HDMI 0 &lt;span class="o"&gt;[&lt;/span&gt;HDMI 0&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Next, find out which sink goes to the right HDMI. Use aplay for that:&lt;/p&gt;
+&lt;blockquote&gt;
+aplay -D plughw:[cardId],[deviceId] /usr/share/sounds/alsa/Front_Center.wav&lt;/blockquote&gt;
+&lt;p&gt;Replace cardId and deviceId from the list of playback hardware devices. When you hear a sound on your TV,
+you've hit the right device. Just remember the card id and the device id.&lt;/p&gt;
+&lt;p&gt;Go to XBMC System Settings-&amp;gt;Audio output. Choose Audio output device - Custom. Insert plughw:[cardId],[deviceId](e.g. plughw:0,7) in Custom audio device. You're done. XBMC should route audio thru your HDMI.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="tweaking-policykit"&gt;
+&lt;h3&gt;Tweaking policykit&lt;/h3&gt;
+&lt;p&gt;If the second seat is unable to use removable drives, bluetooth dongles, policykit is to blame.&lt;/p&gt;
+&lt;p&gt;Add/Edit &lt;strong&gt;/etc/polkit-1/localauthority/50-local.d/mseat.pkla&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;[&lt;/span&gt;allow operations&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;Identity&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;unix-group:plugdev
+&lt;span class="nv"&gt;Action&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;org.freedesktop.udisks.*;org.blueman.*;org.freedesktop.pulseaudio
+&lt;span class="nv"&gt;ResultAny&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;span class="nv"&gt;ResultActive&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;span class="nv"&gt;ResultInactive&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;That should be it.&lt;/p&gt;
+&lt;p&gt;If this setup doesn't work for you, don't give up easily. Ask around forums and irc. These setups can differ largely, based on the hardware and the setup. You can ask in comments as well. I'll try to help out as much as I can.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="post-scriptum"&gt;
+&lt;h2&gt;Post Scriptum&lt;/h2&gt;
+&lt;p&gt;I want to thank the Archlinux and Gentoo communities for their effort on the wikis. They helped me a lot in making this.
+Also, kudos to the whole Linux community for doing things this awesome.&lt;/p&gt;
+&lt;p&gt;And, XBMC devs, hats off to you guys!&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="kde"></category><category term="xbmc"></category><category term="desktop"></category><category term="linux"></category><category term="miscellaneous"></category><category term="multiseat"></category><category term="xorg"></category></entry><entry><title>KDE vs. Gnome - A Subjective View : UPDATE</title><link href="http://brainacle.com/kde-vs-gnome-a-subjective-view-update.html" rel="alternate"></link><updated>2012-04-12T00:03:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-04-12:/kde-vs-gnome-a-subjective-view-update.html/</id><summary type="html">&lt;p&gt;Few months ago, I &lt;a class="reference external" href="/kde-vs-gnome-a-subjective-view.html"&gt;wrote an article&lt;/a&gt; on my view on the KDE vs. Gnome - Pros, Cons, stuff that irritates me and stuff
 that's good. At that time, I was still a Gnome user. But after a lot of frustrations with the Gnome desktop,
 I switched to KDE and never went back to this date. After KDE SC 4.8 dropped in. Archlinux immediately picked it up, as
 always, so I had a lot of time to test drive it and see how it preforms.&lt;/p&gt;
