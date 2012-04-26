@@ -323,6 +323,8 @@ If this setup doesn't work for you, don't give up easily. Ask around forums and 
 Post Scriptum
 #############
 
+The "howto" is quite big for me to follow. If you feel I've missed anything, notify me in comments and I'll update the post. Thanks for understanding.
+
 I want to thank the Archlinux and Gentoo communities for their effort on the wikis. They helped me a lot in making this.
 Also, kudos to the whole Linux community for doing things this awesome.
 
