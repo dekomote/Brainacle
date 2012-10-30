@@ -1,8 +1,231 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Brainacle</title><link href="http://brainacle.com" rel="alternate"></link><link href="http://brainacle.com/feeds/all.atom.xml" rel="self"></link><id>http://brainacle.com</id><updated>2012-05-27T21:03:00Z</updated><entry><title>Multiseating with KDE and XBMC Like a boss</title><link href="http://brainacle.com/multiseating-with-kde-and-xbmc-like-a-boss.html" rel="alternate"></link><updated>2012-05-27T21:03:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-05-27:/multiseating-with-kde-and-xbmc-like-a-boss.html/</id><summary type="html">&lt;p&gt;Linux multi-seat setup is a setup where multiple users can use the same PC simultaneously.
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Brainacle</title><link href="http://brainacle.com/" rel="alternate"></link><link href="http://brainacle.com/feeds/all.atom.xml" rel="self"></link><id>http://brainacle.com/</id><updated>2012-10-30T23:03:00Z</updated><entry><title>UPDATED: Multiseating with KDE and XBMC Like a boss</title><link href="http://brainacle.com/updated-multiseating-with-kde-and-xbmc-like-a-boss.html" rel="alternate"></link><updated>2012-10-30T23:03:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-10-30:updated-multiseating-with-kde-and-xbmc-like-a-boss.html</id><summary type="html">&lt;p&gt;A while ago, I wrote a how-to concerning a multiseat setup with xbmc and KDE. Since then, I've done a lot of tweaks to
+the system, optimized the configurations, made them more modular and DE independent. Also, UDEV RULES!&lt;/p&gt;
+&lt;p&gt;Make sure to read the old article &lt;a class="reference external" href="http://brainacle.com/multiseating-with-kde-and-xbmc-like-a-boss.html"&gt;here&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;You can skip the part with the configurations, but if you have time, see how the old system was and how it is now.&lt;/p&gt;
+&lt;p&gt;Again, It's best if I cover my behind so:&lt;/p&gt;
+&lt;div class="section" id="backup-all-the-files-you-ll-be-changing-before-you-start-changing-them-i-don-t-take-any-responsibility-for-any-damage-you-might-cause"&gt;
+&lt;h2&gt;&lt;strong&gt;Backup all the files you'll be changing before you start changing them. I don't take any responsibility for any damage you might cause.&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Lets start configuring!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configuration"&gt;
+&lt;h2&gt;Configuration&lt;/h2&gt;
+&lt;p&gt;Before you start, make sure you have a fresh distro. 3.2+ kernel, xorg 1.10+, evdev drivers for mouse and keyboard.&lt;/p&gt;
+&lt;div class="section" id="finding-out-busid-of-the-gpus"&gt;
+&lt;h3&gt;Finding out BusId of the GPUs&lt;/h3&gt;
+&lt;p&gt;We use BusId of the GPU to configure the &amp;quot;Device&amp;quot; parts in xorg.conf. The BusID is a string that looks like &amp;quot;PCI:1:0:0&amp;quot;.
+To find out the right BusID, use &lt;strong&gt;lspci | egrep &amp;quot;VGA|Display&amp;quot;&lt;/strong&gt;. The output should look something like this:&lt;/p&gt;
+&lt;blockquote&gt;
+00:02.0 Display controller: Intel Corporation 2nd Generation Core Processor Family Integrated Graphics Controller (rev 09)
+01:00.0 VGA compatible controller: Advanced Micro Devices [AMD] nee ATI Juniper XT [AMD Radeon HD 6000 Series]&lt;/blockquote&gt;
+&lt;p&gt;The output is pretty much straightforward. You can see which Bus is which GPU. So, based on this, your BusIDs would be
+&lt;strong&gt;PCI:0:2:0&lt;/strong&gt; and &lt;strong&gt;PCI:1:0:0&lt;/strong&gt;. Save those strings somewhere, you'll need them later.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configuring-udev"&gt;
+&lt;h3&gt;Configuring Udev&lt;/h3&gt;
+&lt;p&gt;Here's the fun part :). We write udev rules to &lt;strong&gt;tag&lt;/strong&gt; the inputs, so we can assign them to specific seats.&lt;/p&gt;
+&lt;p&gt;First, we have to distinguish the different inputs for the seats by some identifier. If your input are different models and/or vendors
+it's very easy. If not, comment me, and if there's enough comments, I'll try to write up a good Udev tutorial on how to find
+sys paths, query by advanced parameters etc.&lt;/p&gt;
+&lt;p&gt;So now, open a terminal and write 'lsusb'. The output should look like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;Bus 001 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
+Bus 003 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 001 Device 003: ID 046d:c50e Logitech, Inc. Cordless Mouse Receiver
+Bus 003 Device 003: ID 1058:1021 Western Digital Technologies, Inc. Elements 2TB
+Bus 003 Device 004: ID 046d:c318 Logitech, Inc. Illuminated Keyboard
+Bus 003 Device 005: ID 1532:0016 Razer USA, Ltd DeathAdder Mouse
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Notice the ID. Its meaning is VENDOR_ID:PRODUCT_ID. My inputs are 046d:c50e, 046d:c318 and 1532:0016.&lt;/p&gt;
+&lt;p&gt;Save your IDs.&lt;/p&gt;
+&lt;p&gt;Next, go to /etc/udev/rules.d and create a script called &lt;em&gt;99-multiseat.rules&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Next few lines should go in it:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;SUBSYSTEM&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;input&amp;quot;&lt;/span&gt;, ENV&lt;span class="o"&gt;{&lt;/span&gt;ID_INPUT.tags&lt;span class="o"&gt;}=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;input_default&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;SUBSYSTEM&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;input&amp;quot;&lt;/span&gt;, ENV&lt;span class="o"&gt;{&lt;/span&gt;ID_VENDOR_ID&lt;span class="o"&gt;}==&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;046d&amp;quot;&lt;/span&gt;, ENV&lt;span class="o"&gt;{&lt;/span&gt;ID_MODEL_ID&lt;span class="o"&gt;}==&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;c50e&amp;quot;&lt;/span&gt;, ENV&lt;span class="o"&gt;{&lt;/span&gt;ID_INPUT.tags&lt;span class="o"&gt;}=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;input_right&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The first line tags all inputs with tag &amp;quot;input_default&amp;quot;. The second line tags the specific input with Vendor ID 046d and model ID c50e with the tag &amp;quot;input right&amp;quot;.
+Change the values to your vendor and model ID.&lt;/p&gt;
+&lt;p&gt;Save the script, mark it +x and reboot.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configuring-x"&gt;
+&lt;h3&gt;Configuring X&lt;/h3&gt;
+&lt;p&gt;Last how-to used one xorg.conf. Now, we'll use main seat and off-seat configuration files for xorg.conf.&lt;/p&gt;
+&lt;p&gt;Open /etc/X11/xorg.conf for editing, as root user. If you don't have that file, just create it. &lt;strong&gt;Note:&lt;/strong&gt;
+Different distros might have different xorg.conf path. Most of the distros use /etc/X11/.&lt;/p&gt;
+&lt;p&gt;We'll use a simple, barebone xorg configuration, and let X autoconfigure everything else:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;Section &lt;span class="s2"&gt;&amp;quot;ServerFlags&amp;quot;&lt;/span&gt;
+    &lt;span class="c"&gt;# Xorg will otherwise not start if it can&amp;#39;t find a mouse to use. Better safe than sorry.&lt;/span&gt;
+    Option  &lt;span class="s2"&gt;&amp;quot;AllowMouseOpenFail&amp;quot;&lt;/span&gt;    &lt;span class="s2"&gt;&amp;quot;true&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt;
+    Identifier &lt;span class="s2"&gt;&amp;quot;gfx_left&amp;quot;&lt;/span&gt;
+    Driver &lt;span class="s2"&gt;&amp;quot;radeon&amp;quot;&lt;/span&gt;
+    BusID       &lt;span class="s2"&gt;&amp;quot;PCI:1:0:0&amp;quot;&lt;/span&gt;
+    EndSection
+
+    Section &lt;span class="s2"&gt;&amp;quot;InputClass&amp;quot;&lt;/span&gt;
+    Identifier &lt;span class="s2"&gt;&amp;quot;ignore_other_seats&amp;quot;&lt;/span&gt;
+    MatchTag &lt;span class="s2"&gt;&amp;quot;input_right&amp;quot;&lt;/span&gt;
+    Option &lt;span class="s2"&gt;&amp;quot;Ignore&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;yes&amp;quot;&lt;/span&gt;
+EndSection
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;That's ALL!&lt;/strong&gt; By using MatchTag, we match the inputs tagged as &amp;quot;input_right&amp;quot; and we &amp;quot;Ignore&amp;quot; them.
+Note the BussID in the &amp;quot;Device&amp;quot; section. It should match your primary GPU.&lt;/p&gt;
+&lt;p&gt;Save the script. This should work independently of the next configuration file.&lt;/p&gt;
+&lt;p&gt;Open /etc/X11/xorg-xbmc.conf for editing, as root user.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;Section &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt;
+    Identifier &lt;span class="s2"&gt;&amp;quot;gfx_right&amp;quot;&lt;/span&gt;
+    Driver &lt;span class="s2"&gt;&amp;quot;intel&amp;quot;&lt;/span&gt;
+    BusID       &lt;span class="s2"&gt;&amp;quot;PCI:0:2:0&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;InputClass&amp;quot;&lt;/span&gt;
+    Identifier &lt;span class="s2"&gt;&amp;quot;ignore_other_seats&amp;quot;&lt;/span&gt;
+    Option &lt;span class="s2"&gt;&amp;quot;Ignore&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;yes&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;InputClass&amp;quot;&lt;/span&gt;
+    Identifier &lt;span class="s2"&gt;&amp;quot;input_right&amp;quot;&lt;/span&gt;
+    MatchTag &lt;span class="s2"&gt;&amp;quot;input_right&amp;quot;&lt;/span&gt;
+    Option &lt;span class="s2"&gt;&amp;quot;Ignore&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;no&amp;quot;&lt;/span&gt;
+EndSection
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This config will be used by the off-seat xserver. We point to the graphic card, we tell it to ignore all the inputs except
+those tagged as &amp;quot;input_right&amp;quot; and we're set here.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="testing-the-configuration"&gt;
+&lt;h3&gt;Testing the configuration&lt;/h3&gt;
+&lt;p&gt;First, let the main xserver load the xorg.conf. Switch to runlevel 3 and then 5 again (telinit [runlevel]).&lt;/p&gt;
+&lt;p&gt;When the main seat is up, open up a terminal, and execute this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;/bin/su -- - &lt;span class="o"&gt;[&lt;/span&gt;your off-seat user&lt;span class="o"&gt;]&lt;/span&gt; -c &lt;span class="s2"&gt;&amp;quot;xinit -- /usr/bin/X :2 vt9 -nolisten tcp -config xorg-xbmc.conf -sharevts -novtswitch&amp;quot;&lt;/span&gt; &amp;lt;/dev/tty9 &amp;gt;/dev/tty9 2&amp;gt;/dev/tty9
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;It should get the server up.&lt;/p&gt;
+&lt;p&gt;If you want to daemonize this, open up a init script (either /etc/init.d/xorg-offseat or /etc/rc.d/xorg-offseat depending on distro) and inser the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/bin/sh&lt;/span&gt;
+
+&lt;span class="nb"&gt;set&lt;/span&gt; -e
+
+&lt;span class="nv"&gt;PATH&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/usr/local/bin:/usr/local/sbin:/bin:/usr/bin:/sbin:/usr/sbin
+&lt;span class="nv"&gt;DAEMON&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/usr/bin/startx
+&lt;span class="nv"&gt;PIDFILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/var/run/xorg-offseat.pid
+&lt;span class="nv"&gt;USER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;[your offseat user here]&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;HOME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;~&lt;span class="o"&gt;[&lt;/span&gt;your offseat user home dir here&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;CONFIG&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;xorg-xmbc.conf&amp;quot;&lt;/span&gt;
+
+&lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;$1&amp;quot;&lt;/span&gt; in
+  start&lt;span class="o"&gt;)&lt;/span&gt;
+    sleep 5s
+    &lt;span class="nb"&gt;echo&lt;/span&gt; -n &lt;span class="s2"&gt;&amp;quot;Starting X session: startx&amp;quot;&lt;/span&gt;
+    &lt;span class="nb"&gt;cd&lt;/span&gt; &lt;span class="nv"&gt;$HOME&lt;/span&gt;
+    /bin/su -- - &lt;span class="nv"&gt;$USER&lt;/span&gt; -c &lt;span class="s2"&gt;&amp;quot;xinit -- /usr/bin/X :2 vt9 -nolisten tcp -config $CONFIG -sharevts -novtswitch&amp;quot;&lt;/span&gt; &amp;lt;/dev/tty9 &amp;gt;/dev/tty9 2&amp;gt;/dev/tty9 &amp;amp; &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="nv"&gt;$!&lt;/span&gt; &amp;gt;&lt;span class="nv"&gt;$PIDFILE&lt;/span&gt;
+    &lt;span class="c"&gt;#/usr/bin/startx -- :2 vt9 -nolisten tcp -config $CONFIG -sharevts -novtswitch&amp;quot;&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;.&amp;quot;&lt;/span&gt;
+  ;;
+
+  restart&lt;span class="o"&gt;)&lt;/span&gt;
+    /etc/rc.d/xorg-offseat stop
+    /etc/rc.d/xorg-offseat start
+  ;;
+
+  stop&lt;span class="o"&gt;)&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; -n &lt;span class="s2"&gt;&amp;quot;Stopping X session: startx&amp;quot;&lt;/span&gt;
+    &lt;span class="nb"&gt;kill&lt;/span&gt; &lt;span class="sb"&gt;`&lt;/span&gt;cat &lt;span class="nv"&gt;$PIDFILE&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="nb"&gt;echo&lt;/span&gt; -n &lt;span class="s2"&gt;&amp;quot; not running&amp;quot;&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;.&amp;quot;&lt;/span&gt;
+  ;;
+
+  *&lt;span class="o"&gt;)&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Usage: /etc/init.d/xorg-offseat {start|stop|restart}&amp;quot;&lt;/span&gt;
+    &lt;span class="nb"&gt;exit &lt;/span&gt;1
+    ;;
+&lt;span class="k"&gt;esac&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;You can start this as you start any other daemons. And stop it as well.&lt;/p&gt;
+&lt;p&gt;If you don't want to use daemons, you can always rely on your display manager.
+I used KDM, trieg gdm but a lot has changed and the docs aren't much updated, so I can't be sure if it'll work.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configuring-kdm"&gt;
+&lt;h3&gt;Configuring KDM&lt;/h3&gt;
+&lt;p&gt;Open &lt;strong&gt;/usr/share/config/kdm/kdmrc&lt;/strong&gt; for editing, as root.&lt;/p&gt;
+&lt;p&gt;In the [General] section, change the &lt;strong&gt;ReserveServers&lt;/strong&gt; and &lt;strong&gt;StaticServers&lt;/strong&gt; as follows:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;ReserveServers&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:2,:3
+&lt;span class="nv"&gt;StaticServers&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:0,:1
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;At the end, add this snippet:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;[&lt;/span&gt;X-:0-Core&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;ServerArgsLocal&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;-nolisten tcp -config xorg.conf
+
+&lt;span class="o"&gt;[&lt;/span&gt;X-:1-Core&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;ServerArgsLocal&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;-nolisten tcp -config xorg-xbmc.conf -sharevts -novtswitch
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;If you want a user to auto-login on the second seat (in my case, I want the xbmc user to autologin),  add this to the file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;[&lt;/span&gt;X-:1-Core&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;AutoLoginEnable&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt;
+&lt;span class="nv"&gt;AutoLoginLocked&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;false&lt;/span&gt;
+&lt;span class="nv"&gt;AutoLoginUser&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;xbmc
+&lt;span class="nv"&gt;ClientLogFile&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;.xsession-errors
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Don't execute custom sessions!&lt;/strong&gt;. It's bugged. Try the default one and autostart xbmc from there.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="things-from-the-old-how-to"&gt;
+&lt;h2&gt;Things from the old How-To&lt;/h2&gt;
+&lt;div class="section" id="tweaking-hdmi-audio-for-xbmc"&gt;
+&lt;h3&gt;Tweaking HDMI audio for XBMC&lt;/h3&gt;
+&lt;p&gt;You need to find the alsa sinks of your system. To do that, use &lt;strong&gt;aplay -l&lt;/strong&gt;. The output should be something like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;**** List of PLAYBACK Hardware Devices ****
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 0: ALC887-VD Analog &lt;span class="o"&gt;[&lt;/span&gt;ALC887-VD Analog&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 1: ALC887-VD Digital &lt;span class="o"&gt;[&lt;/span&gt;ALC887-VD Digital&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 3: HDMI 0 &lt;span class="o"&gt;[&lt;/span&gt;HDMI 0&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 7: HDMI 1 &lt;span class="o"&gt;[&lt;/span&gt;HDMI 1&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 1: Generic &lt;span class="o"&gt;[&lt;/span&gt;HD-Audio Generic&lt;span class="o"&gt;]&lt;/span&gt;, device 3: HDMI 0 &lt;span class="o"&gt;[&lt;/span&gt;HDMI 0&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Next, find out which sink goes to the right HDMI. Use aplay for that:&lt;/p&gt;
+&lt;blockquote&gt;
+aplay -D plughw:[cardId],[deviceId] /usr/share/sounds/alsa/Front_Center.wav&lt;/blockquote&gt;
+&lt;p&gt;Replace cardId and deviceId from the list of playback hardware devices. When you hear a sound on your TV,
+you've hit the right device. Just remember the card id and the device id.&lt;/p&gt;
+&lt;p&gt;Go to XBMC System Settings-&amp;gt;Audio output. Choose Audio output device - Custom. Insert plughw:[cardId],[deviceId](e.g. plughw:0,7) in Custom audio device. You're done. XBMC should route audio thru your HDMI.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="tweaking-policykit"&gt;
+&lt;h3&gt;Tweaking policykit&lt;/h3&gt;
+&lt;p&gt;If the second seat is unable to use removable drives, bluetooth dongles, policykit is to blame.&lt;/p&gt;
+&lt;p&gt;Add/Edit &lt;strong&gt;/etc/polkit-1/localauthority/50-local.d/mseat.pkla&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;[&lt;/span&gt;allow operations&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;Identity&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;unix-group:plugdev
+&lt;span class="nv"&gt;Action&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;org.freedesktop.udisks.*;org.blueman.*;org.freedesktop.pulseaudio
+&lt;span class="nv"&gt;ResultAny&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;span class="nv"&gt;ResultActive&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;span class="nv"&gt;ResultInactive&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;That should be it.&lt;/p&gt;
+&lt;p&gt;If this setup doesn't work for you, don't give up easily. Ask around forums and irc. These setups can differ largely, based on the hardware and the setup. You can ask in comments as well. I'll try to help out as much as I can.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="post-scriptum"&gt;
+&lt;h2&gt;Post Scriptum&lt;/h2&gt;
+&lt;p&gt;Comment me with your issues, I'll try to help as much as I can. Try to leave verbose outputs please. Best of luck with your multi-seat setups!&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="kde"></category><category term="xbmc"></category><category term="desktop"></category><category term="linux"></category><category term="miscellaneous"></category><category term="multiseat"></category><category term="xorg"></category></entry><entry><title>Multiseating with KDE and XBMC Like a boss</title><link href="http://brainacle.com/multiseating-with-kde-and-xbmc-like-a-boss.html" rel="alternate"></link><updated>2012-05-27T21:03:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-05-27:multiseating-with-kde-and-xbmc-like-a-boss.html</id><summary type="html">&lt;div class="section" id="id1"&gt;
+&lt;h2&gt;&lt;a class="reference external" href="http://brainacle.com/multiseating-with-kde-and-xbmc-like-a-boss-update.html"&gt;UPDATED with udev, modular configuration and less headache here.&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Linux multi-seat setup is a setup where multiple users can use the same PC simultaneously.
 You have a monitor and input devices for each of those users, and a separate X session for all.
 It's a PITA to set up if you don't know what to do, but the end result is legendary.
 Trust me, I spent countless hours setting up mine, but it was worth it.&lt;/p&gt;
+&lt;/div&gt;
 &lt;div class="section" id="why"&gt;
 &lt;h2&gt;Why?&lt;/h2&gt;
 &lt;ul class="simple"&gt;
@@ -253,7 +476,7 @@ you've hit the right device. Just remember the card id and the device id.&lt;/p&
 Also, kudos to the whole Linux community for doing things this awesome.&lt;/p&gt;
 &lt;p&gt;And, XBMC devs, hats off to you guys!&lt;/p&gt;
 &lt;/div&gt;
-</summary><category term="kde"></category><category term="xbmc"></category><category term="desktop"></category><category term="linux"></category><category term="miscellaneous"></category><category term="multiseat"></category><category term="xorg"></category></entry><entry><title>KDE vs. Gnome - A Subjective View : UPDATE</title><link href="http://brainacle.com/kde-vs-gnome-a-subjective-view-update.html" rel="alternate"></link><updated>2012-04-12T00:03:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-04-12:/kde-vs-gnome-a-subjective-view-update.html/</id><summary type="html">&lt;p&gt;Few months ago, I &lt;a class="reference external" href="/kde-vs-gnome-a-subjective-view.html"&gt;wrote an article&lt;/a&gt; on my view on the KDE vs. Gnome - Pros, Cons, stuff that irritates me and stuff
+</summary><category term="kde"></category><category term="xbmc"></category><category term="desktop"></category><category term="linux"></category><category term="miscellaneous"></category><category term="multiseat"></category><category term="xorg"></category></entry><entry><title>KDE vs. Gnome - A Subjective View : UPDATE</title><link href="http://brainacle.com/kde-vs-gnome-a-subjective-view-update.html" rel="alternate"></link><updated>2012-04-12T00:03:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-04-12:kde-vs-gnome-a-subjective-view-update.html</id><summary type="html">&lt;p&gt;Few months ago, I &lt;a class="reference external" href="/kde-vs-gnome-a-subjective-view.html"&gt;wrote an article&lt;/a&gt; on my view on the KDE vs. Gnome - Pros, Cons, stuff that irritates me and stuff
 that's good. At that time, I was still a Gnome user. But after a lot of frustrations with the Gnome desktop,
 I switched to KDE and never went back to this date. After KDE SC 4.8 dropped in. Archlinux immediately picked it up, as
 always, so I had a lot of time to test drive it and see how it preforms.&lt;/p&gt;
@@ -353,7 +576,7 @@ Make it work OOB. Let's copy Windows for a change :) (just kidding... or am I).&
 &lt;p&gt;P.S. -again- For the purists s/Linux/Gnu\/Linux/&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-</summary><category term="kde"></category><category term="gnome"></category><category term="desktop"></category><category term="linux"></category><category term="miscellaneous"></category></entry><entry><title>How to use Django Uni-form with Twitter Bootstrap CSS</title><link href="http://brainacle.com/how-to-use-django-uni-form-with-twitter-bootstrap-css.html" rel="alternate"></link><updated>2012-02-13T20:58:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-02-13:/how-to-use-django-uni-form-with-twitter-bootstrap-css.html/</id><summary type="html">&lt;p&gt;I'm sure, most of you, know what &lt;a class="reference external" href="https://github.com/pydanny/django-uni-form"&gt;django-uni-form&lt;/a&gt; is... For those that don't, django-uni-form is a
+</summary><category term="kde"></category><category term="gnome"></category><category term="desktop"></category><category term="linux"></category><category term="miscellaneous"></category></entry><entry><title>How to use Django Uni-form with Twitter Bootstrap CSS</title><link href="http://brainacle.com/how-to-use-django-uni-form-with-twitter-bootstrap-css.html" rel="alternate"></link><updated>2012-02-13T20:58:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-02-13:how-to-use-django-uni-form-with-twitter-bootstrap-css.html</id><summary type="html">&lt;p&gt;I'm sure, most of you, know what &lt;a class="reference external" href="https://github.com/pydanny/django-uni-form"&gt;django-uni-form&lt;/a&gt; is... For those that don't, django-uni-form is a
 very cool django app that makes form management/styling/layouting a breeze. You can do pretty much anything to a form with it: Split it in formsets, add
 HTML between every element, wrap different elements in different containers etc. Also, it produces great HTML, and it manages the &amp;lt;form&amp;gt; tag, as well
 as the submit/reset buttons. If you aren't using it, you should definitely start.&lt;/p&gt;
@@ -468,7 +691,7 @@ following content:&lt;/p&gt;
 &lt;img alt="../static/uploads/bootstrap_uniform.png" src="../static/uploads/bootstrap_uniform.png" /&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-</summary><category term="python"></category><category term="plugin"></category><category term="vim"></category><category term="coding"></category><category term="twitter"></category><category term="bootstrap"></category><category term="uniform"></category></entry><entry><title>New Year's Python Meme 2012</title><link href="http://brainacle.com/new-years-python-meme-2012.html" rel="alternate"></link><updated>2011-12-28T14:01:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-12-28:/new-years-python-meme-2012.html/</id><summary type="html">&lt;p&gt;Following Tarek Ziade's &lt;a class="reference external" href="http://tarekziade.wordpress.com/2011/12/20/new-years-python-meme-2/"&gt;#2012pythonmeme&lt;/a&gt;:&lt;/p&gt;
+</summary><category term="python"></category><category term="plugin"></category><category term="vim"></category><category term="coding"></category><category term="twitter"></category><category term="bootstrap"></category><category term="uniform"></category></entry><entry><title>New Year's Python Meme 2012</title><link href="http://brainacle.com/new-years-python-meme-2012.html" rel="alternate"></link><updated>2011-12-28T14:01:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-12-28:new-years-python-meme-2012.html</id><summary type="html">&lt;p&gt;Following Tarek Ziade's &lt;a class="reference external" href="http://tarekziade.wordpress.com/2011/12/20/new-years-python-meme-2/"&gt;#2012pythonmeme&lt;/a&gt;:&lt;/p&gt;
 &lt;div class="section" id="whats-the-coolest-python-application-framework-or-library-you-have-discovered-in-2011"&gt;
 &lt;h2&gt;1. What’s the coolest Python application, framework or library you have discovered in 2011?&lt;/h2&gt;
 &lt;blockquote&gt;
@@ -534,7 +757,7 @@ since there are some very good features of py3 i want to exploit.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/blockquote&gt;
 &lt;/div&gt;
-</summary><category term="linux"></category><category term="coding"></category><category term="python"></category><category term="meme"></category></entry><entry><title>KDE vs. Gnome - A Subjective View</title><link href="http://brainacle.com/kde-vs-gnome-a-subjective-view.html" rel="alternate"></link><updated>2011-10-29T21:03:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-10-29:/kde-vs-gnome-a-subjective-view.html/</id><summary type="html">&lt;p&gt;Past year, a lot has changed with the desktop environments for Linux. Gnome going 3,
+</summary><category term="linux"></category><category term="coding"></category><category term="python"></category><category term="meme"></category></entry><entry><title>KDE vs. Gnome - A Subjective View</title><link href="http://brainacle.com/kde-vs-gnome-a-subjective-view.html" rel="alternate"></link><updated>2011-10-29T21:03:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-10-29:kde-vs-gnome-a-subjective-view.html</id><summary type="html">&lt;p&gt;Past year, a lot has changed with the desktop environments for Linux. Gnome going 3,
 Ubuntu going Unity, people going nuts about that. I've been experimenting with all of them trying to
 find the one that will serve me good and will evolve at a slower pace. I, being an exclusive computer/Linux user for a
 long time, had tough time with the new UIs (I prefer the old style - 1 panel on the bottom, no wobbly-wobbly).
@@ -666,7 +889,7 @@ to configure using gconf/dconf, or configure xautomation/xbindkeys. Make it perf
 &lt;p&gt;P.S. For the purists s/Linux/Gnu\/Linux/&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-</summary><category term="kde"></category><category term="gnome"></category><category term="lxde"></category><category term="xfce"></category><category term="desktop"></category><category term="linux"></category><category term="miscellaneous"></category></entry><entry><title>HOW-TO: Use multiple WMD editors on a same page</title><link href="http://brainacle.com/how-to-use-multiple-wmd-editors-on-a-same-page.html" rel="alternate"></link><updated>2011-10-27T15:30:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-10-27:/how-to-use-multiple-wmd-editors-on-a-same-page.html/</id><summary type="html">&lt;p&gt;&lt;a class="reference external" href="http://code.google.com/p/wmd/"&gt;WMD&lt;/a&gt; editor resembles Stackoverflow's Markdown editor and it's probably one of
+</summary><category term="kde"></category><category term="gnome"></category><category term="lxde"></category><category term="xfce"></category><category term="desktop"></category><category term="linux"></category><category term="miscellaneous"></category></entry><entry><title>HOW-TO: Use multiple WMD editors on a same page</title><link href="http://brainacle.com/how-to-use-multiple-wmd-editors-on-a-same-page.html" rel="alternate"></link><updated>2011-10-27T15:30:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-10-27:how-to-use-multiple-wmd-editors-on-a-same-page.html</id><summary type="html">&lt;p&gt;&lt;a class="reference external" href="http://code.google.com/p/wmd/"&gt;WMD&lt;/a&gt; editor resembles Stackoverflow's Markdown editor and it's probably one of
 the best WYSIWYG editors that work with Markdown as input. Because of that, it's widely used in
 Stackoverflow clones (i.e. &lt;a class="reference external" href="http://http://www.osqa.net/"&gt;OSQA&lt;/a&gt;). It's easy to install and use (just tie it to a
 textarea), it supports the mostly used features, provided by this type of editors, but has 1 major flaw:
@@ -712,7 +935,7 @@ point &lt;em&gt;Attacklab.panels.buttonBar&lt;/em&gt; to the toolbox tied to the
 &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
-</summary><category term="wmd"></category><category term="markdown"></category><category term="javascript"></category><category term="how-to"></category><category term="coding"></category></entry><entry><title>Nautilus-minus extension</title><link href="http://brainacle.com/nautilus-minus-extension.html" rel="alternate"></link><updated>2011-02-14T19:01:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-02-14:/nautilus-minus-extension.html/</id><summary type="html">&lt;p&gt;&lt;strong&gt;nautilus-min.us&lt;/strong&gt; is an &lt;em&gt;extension&lt;/em&gt; for nautilus that makes uploading images
+</summary><category term="wmd"></category><category term="markdown"></category><category term="javascript"></category><category term="how-to"></category><category term="coding"></category></entry><entry><title>Nautilus-minus extension</title><link href="http://brainacle.com/nautilus-minus-extension.html" rel="alternate"></link><updated>2011-02-14T19:01:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-02-14:nautilus-minus-extension.html</id><summary type="html">&lt;p&gt;&lt;strong&gt;nautilus-min.us&lt;/strong&gt; is an &lt;em&gt;extension&lt;/em&gt; for nautilus that makes uploading images
 and galleries to &lt;a class="reference external" href="http://min.us"&gt;http://min.us&lt;/a&gt; easier for the user. It adds an item in the
 context menu, so when you select one or more images, you click &amp;quot;Upload to min.us&amp;quot;,
 wait for a moment, and your default browser will open on the gallery page.&lt;/p&gt;
@@ -752,7 +975,7 @@ can be notified of eventual errors/ updates.&lt;/p&gt;
 &lt;p&gt;I would love to hear some comments, critique, feature requests etc. You can fork it,
 request pulls and comment on &lt;a class="reference external" href="https://github.com/dekomote/nautilus-min.us/"&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
 &lt;/div&gt;
-</summary><category term="linux"></category><category term="coding"></category><category term="python"></category><category term="gnome"></category><category term="nautilus"></category></entry><entry><title>How to write vim plugins with python</title><link href="http://brainacle.com/how-to-write-vim-plugins-with-python.html" rel="alternate"></link><updated>2011-02-03T14:58:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-02-03:/how-to-write-vim-plugins-with-python.html/</id><summary type="html">&lt;p&gt;I'm not going to dive into how good or extendible Vim is. If you are reading this
+</summary><category term="linux"></category><category term="coding"></category><category term="python"></category><category term="gnome"></category><category term="nautilus"></category></entry><entry><title>How to write vim plugins with python</title><link href="http://brainacle.com/how-to-write-vim-plugins-with-python.html" rel="alternate"></link><updated>2011-02-03T14:58:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-02-03:how-to-write-vim-plugins-with-python.html</id><summary type="html">&lt;p&gt;I'm not going to dive into how good or extendible Vim is. If you are reading this
 article, you probably know that. The thing that makes Vim so good, is the
 scripting environment behind it called VimL. Using this scripting language,
 you can write any functionality/plugin you need for Vim. Each plugin you use
@@ -787,7 +1010,7 @@ and will display it in the current buffer.&lt;/p&gt;
 &lt;p&gt;Start by opening &amp;quot;vimmit.vim&amp;quot; file (in vim). Since we are writing python code,
 its good to check if Vim supports Python:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;!&lt;/span&gt;has&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;python&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    echo &lt;span class="c"&gt;&amp;quot;Error: Required vim compiled with +python&amp;quot;&lt;/span&gt;
+    echo &lt;span class="s2"&gt;&amp;quot;Error: Required vim compiled with +python&amp;quot;&lt;/span&gt;
     &lt;span class="k"&gt;finish&lt;/span&gt;
 &lt;span class="k"&gt;endif&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
@@ -874,10 +1097,10 @@ argument states how many arguments the command will take.&lt;/p&gt;
 &lt;p&gt;Q: How does one access functional arguments?&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;function&lt;/span&gt;&lt;span class="p"&gt;!&lt;/span&gt; SomeName&lt;span class="p"&gt;(&lt;/span&gt;arg1&lt;span class="p"&gt;,&lt;/span&gt; arg2&lt;span class="p"&gt;,&lt;/span&gt; arg3&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="c"&gt;    &amp;quot; Get the first argument by name in VimL&lt;/span&gt;
-    &lt;span class="k"&gt;let&lt;/span&gt; firstarg&lt;span class="p"&gt;=&lt;/span&gt;a:arg1
+    &lt;span class="k"&gt;let&lt;/span&gt; firstarg&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="k"&gt;a&lt;/span&gt;:arg1
 
 &lt;span class="c"&gt;    &amp;quot; Get the second argument by position in Viml&lt;/span&gt;
-    &lt;span class="k"&gt;let&lt;/span&gt; secondarg&lt;span class="p"&gt;=&lt;/span&gt;a:&lt;span class="m"&gt;1&lt;/span&gt;
+    &lt;span class="k"&gt;let&lt;/span&gt; secondarg&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="k"&gt;a&lt;/span&gt;:&lt;span class="m"&gt;1&lt;/span&gt;
 
 &lt;span class="c"&gt;    &amp;quot; Get the arguments in python&lt;/span&gt;
 
@@ -898,14 +1121,14 @@ and you can mix them with named arguments (arg1, arg2, ...)&lt;/p&gt;
 best thing to do is check if it exists and if doesn't define it and assign some
 default value to it:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;!&lt;/span&gt;exists&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;g:reddit_apicall_timeout&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="k"&gt;let&lt;/span&gt; g:reddit_apicall_timeout&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="m"&gt;40&lt;/span&gt;
+    &lt;span class="k"&gt;let&lt;/span&gt; &lt;span class="k"&gt;g&lt;/span&gt;:reddit_apicall_timeout&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="m"&gt;40&lt;/span&gt;
 &lt;span class="k"&gt;endif&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;You can access it from python using the vim module:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;TIMEOUT&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;eval&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;g:reddit_apicall_timeout&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;If you want to override this setting, you can write:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;let&lt;/span&gt; g:reddit_apicall_timeout&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="m"&gt;60&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;let&lt;/span&gt; &lt;span class="k"&gt;g&lt;/span&gt;:reddit_apicall_timeout&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="m"&gt;60&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;in .vimrc .&lt;/p&gt;
 &lt;/div&gt;
@@ -919,7 +1142,7 @@ the only resource you will need when writing vim plugins.&lt;/p&gt;
 &lt;p&gt;Now, try to extend &amp;quot;vimmit.vim&amp;quot; so the user is able to choose a subreddit (as a
 first functional argument).&lt;/p&gt;
 &lt;/div&gt;
-</summary><category term="python"></category><category term="plugin"></category><category term="vim"></category><category term="coding"></category></entry><entry><title>W3cValidate.vim</title><link href="http://brainacle.com/w3cvalidatevim.html" rel="alternate"></link><updated>2011-01-23T00:55:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-01-23:/w3cvalidatevim.html/</id><summary type="html">&lt;p&gt;W3cValidate.vim is a plugin that enables buffer/url validation using the &lt;a class="reference external" href="http://validator.w3.org"&gt;W3 Validator&lt;/a&gt; API.&lt;/p&gt;
+</summary><category term="python"></category><category term="plugin"></category><category term="vim"></category><category term="coding"></category></entry><entry><title>W3cValidate.vim</title><link href="http://brainacle.com/w3cvalidatevim.html" rel="alternate"></link><updated>2011-01-23T00:55:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-01-23:w3cvalidatevim.html</id><summary type="html">&lt;p&gt;W3cValidate.vim is a plugin that enables buffer/url validation using the &lt;a class="reference external" href="http://validator.w3.org"&gt;W3 Validator&lt;/a&gt; API.&lt;/p&gt;
 &lt;div class="section" id="usage"&gt;
 &lt;h2&gt;Usage&lt;/h2&gt;
 &lt;p&gt;Copy w3cvalidate.vim file inside plugin directory, source it or restart Vim. Use&lt;/p&gt;
@@ -937,7 +1160,7 @@ first functional argument).&lt;/p&gt;
 &lt;a class="reference external" href="https://github.com/dekomote/w3cvalidate.vim"&gt;GitHub&lt;/a&gt;
 &lt;a class="reference external" href="http://www.vim.org/scripts/script.php?script_id=3416"&gt;Vim Scripts&lt;/a&gt;&lt;/p&gt;
 &lt;/div&gt;
-</summary><category term="vim"></category><category term="plugin"></category><category term="coding"></category></entry><entry><title>Generate960.py</title><link href="http://brainacle.com/generate960py.html" rel="alternate"></link><updated>2011-01-15T12:06:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-01-15:/generate960py.html/</id><summary type="html">&lt;p&gt;Command line utility script for generating custom &lt;a class="reference external" href="http://960.gs"&gt;960gs&lt;/a&gt; grids (css). It can generate grids will custom width, column number and gutter width. Outputs to file or stdout.&lt;/p&gt;
+</summary><category term="vim"></category><category term="plugin"></category><category term="coding"></category></entry><entry><title>Generate960.py</title><link href="http://brainacle.com/generate960py.html" rel="alternate"></link><updated>2011-01-15T12:06:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-01-15:generate960py.html</id><summary type="html">&lt;p&gt;Command line utility script for generating custom &lt;a class="reference external" href="http://960.gs"&gt;960gs&lt;/a&gt; grids (css). It can generate grids will custom width, column number and gutter width. Outputs to file or stdout.&lt;/p&gt;
 &lt;div class="section" id="usage"&gt;
 &lt;h2&gt;Usage&lt;/h2&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;python generate960.py
@@ -985,7 +1208,7 @@ first functional argument).&lt;/p&gt;
 &lt;p&gt;&lt;a class="reference external" href="https://bitbucket.org/dekomote/generate960.py"&gt;Bitbucket&lt;/a&gt;
 &lt;a class="reference external" href="https://github.com/dekomote/generate960.py"&gt;GitHub&lt;/a&gt;&lt;/p&gt;
 &lt;/div&gt;
-</summary><category term="python"></category><category term="960gs"></category><category term="grids"></category><category term="design"></category></entry><entry><title>How to easily enable r600g Gallium3D in Ubuntu and Ubuntu derivatives for radeon</title><link href="http://brainacle.com/how-to-easily-enable-r600g-gallium3d-in-ubuntu-and-ubuntu-derivatives-for-radeon.html" rel="alternate"></link><updated>2011-01-05T01:47:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-01-05:/how-to-easily-enable-r600g-gallium3d-in-ubuntu-and-ubuntu-derivatives-for-radeon.html/</id><summary type="html">&lt;p&gt;Gallium3D is a software library for 3D graphics device drivers developed by VMware. It's the next big thing in linux graphic drivers world. At the moment, it drives the old (sub r300) ATI graphic cards
+</summary><category term="python"></category><category term="960gs"></category><category term="grids"></category><category term="design"></category></entry><entry><title>How to easily enable r600g Gallium3D in Ubuntu and Ubuntu derivatives for radeon</title><link href="http://brainacle.com/how-to-easily-enable-r600g-gallium3d-in-ubuntu-and-ubuntu-derivatives-for-radeon.html" rel="alternate"></link><updated>2011-01-05T01:47:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-01-05:how-to-easily-enable-r600g-gallium3d-in-ubuntu-and-ubuntu-derivatives-for-radeon.html</id><summary type="html">&lt;p&gt;Gallium3D is a software library for 3D graphics device drivers developed by VMware. It's the next big thing in linux graphic drivers world. At the moment, it drives the old (sub r300) ATI graphic cards
 and it is in a very active development for NVidia and newer ATI(AMD) hardware. You can read more about Gallium &lt;a class="reference external" href="http://wiki.freedesktop.org/wiki/Software/gallium"&gt;here&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Last three weeks I became obsessed with the open source radeon driver. There is a lot of buzz going on there, a lot of optimizations and development (much expected in kernel 2.6.38) which is pretty much covered on the forums of
 &lt;a class="reference external" href="http://phoronix.com"&gt;Phoronix&lt;/a&gt;. I decided to take a spin on new drivers, the development versions of &lt;a class="reference external" href="http://www.mesa3d.org/"&gt;Mesa&lt;/a&gt; and a newer kernel 2.6.37 from the
@@ -1008,7 +1231,7 @@ We just have to wait for a more stable version of the kernel. The kernel is at r
 Gallium3D radeon driver for linux practiced by the author. The author
 will not accept any liability for any damages/data-loss caused using
 the technique described above.&lt;/p&gt;
-</summary><category term="linux"></category><category term="ati"></category><category term="drivers"></category></entry><entry><title>PyFaceDetect</title><link href="http://brainacle.com/pyfacedetect.html" rel="alternate"></link><updated>2010-12-28T18:00:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2010-12-28:/pyfacedetect.html/</id><summary type="html">&lt;p&gt;PyFaceDetect is a thin wrapper around &lt;a class="reference external" href="http://opencv.willowgarage.com"&gt;OpenCV&lt;/a&gt; for detection and marking faces in images.&lt;/p&gt;
+</summary><category term="linux"></category><category term="ati"></category><category term="drivers"></category></entry><entry><title>PyFaceDetect</title><link href="http://brainacle.com/pyfacedetect.html" rel="alternate"></link><updated>2010-12-28T18:00:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2010-12-28:pyfacedetect.html</id><summary type="html">&lt;p&gt;PyFaceDetect is a thin wrapper around &lt;a class="reference external" href="http://opencv.willowgarage.com"&gt;OpenCV&lt;/a&gt; for detection and marking faces in images.&lt;/p&gt;
 &lt;p&gt;The module can be used as an API or in console for testing purposes. For usage and options:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;python pyfacedetect.py -h
 &lt;/pre&gt;&lt;/div&gt;
@@ -1063,7 +1286,7 @@ accuracy of the detection. For more info, read
 &lt;p&gt;&lt;a class="reference external" href="https://bitbucket.org/dekomote/pyfacedetect"&gt;Bitbucket&lt;/a&gt;
 &lt;a class="reference external" href="https://github.com/dekomote/pyfacedetect"&gt;GitHub&lt;/a&gt;&lt;/p&gt;
 &lt;/div&gt;
-</summary><category term="python"></category><category term="opencv"></category><category term="face-detection"></category></entry><entry><title>Calculating image entropy with Python, How and Why?</title><link href="http://brainacle.com/calculating-image-entropy-with-python-how-and-why.html" rel="alternate"></link><updated>2010-10-04T12:20:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2010-10-04:/calculating-image-entropy-with-python-how-and-why.html/</id><summary type="html">&lt;div class="section" id="the-why"&gt;
+</summary><category term="python"></category><category term="opencv"></category><category term="face-detection"></category></entry><entry><title>Calculating image entropy with Python, How and Why?</title><link href="http://brainacle.com/calculating-image-entropy-with-python-how-and-why.html" rel="alternate"></link><updated>2010-10-04T12:20:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2010-10-04:calculating-image-entropy-with-python-how-and-why.html</id><summary type="html">&lt;div class="section" id="the-why"&gt;
 &lt;h2&gt;The Why?&lt;/h2&gt;
 &lt;p&gt;Lets say you are developing a video portal, kinda like youtube/vimeo
 and you want to have an automated way of making thumbnails. Since
@@ -1124,7 +1347,7 @@ entropy and sorting them.&lt;/p&gt;
 noise/liveliness/color/business.*&lt;/strong&gt; You will usually need the thumbnails
 with greater entropy.&lt;/p&gt;
 &lt;/div&gt;
-</summary><category term="development"></category><category term="entropy"></category><category term="image"></category><category term="pil"></category><category term="python"></category></entry><entry><title>Install Proprietary ATI 10.8 drivers on Ubuntu Lucid / Linux Mint</title><link href="http://brainacle.com/install-proprietary-ati-108-drivers-on-ubuntu-lucid-linux-mint.html" rel="alternate"></link><updated>2010-09-09T20:55:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2010-09-09:/install-proprietary-ati-108-drivers-on-ubuntu-lucid-linux-mint.html/</id><summary type="html">&lt;p&gt;I will digress a bit from the theme of the blog, but seeing a lot of
+</summary><category term="development"></category><category term="entropy"></category><category term="image"></category><category term="pil"></category><category term="python"></category></entry><entry><title>Install Proprietary ATI 10.8 drivers on Ubuntu Lucid / Linux Mint</title><link href="http://brainacle.com/install-proprietary-ati-108-drivers-on-ubuntu-lucid-linux-mint.html" rel="alternate"></link><updated>2010-09-09T20:55:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2010-09-09:install-proprietary-ati-108-drivers-on-ubuntu-lucid-linux-mint.html</id><summary type="html">&lt;p&gt;I will digress a bit from the theme of the blog, but seeing a lot of
 people having issues with installing the ATI drivers on Ubuntu, I
 decided to put my thoughts and experience with it here.&lt;/p&gt;
 &lt;p&gt;I have experimented with the drivers quite a bit. I own Sapphire
@@ -1179,7 +1402,7 @@ download page.&lt;/p&gt;
 proprietary ati drivers for linux practiced by the author. The author
 will not accept any liability for any damages/data-loss caused using
 the technique described above.&lt;/p&gt;
-</summary><category term="linux"></category><category term="ati"></category><category term="drivers"></category></entry><entry><title>Pgbouncer Makes a Difference</title><link href="http://brainacle.com/pgbouncer-makes-a-difference.html" rel="alternate"></link><updated>2010-06-15T23:17:00Z</updated><author><name>Vasil Vangelovski</name></author><id>tag:brainacle.com,2010-06-15:/pgbouncer-makes-a-difference.html/</id><summary type="html">&lt;p&gt;Last week I was building VMware images for database and web server
+</summary><category term="linux"></category><category term="ati"></category><category term="drivers"></category></entry><entry><title>Pgbouncer Makes a Difference</title><link href="http://brainacle.com/pgbouncer-makes-a-difference.html" rel="alternate"></link><updated>2010-06-15T23:17:00Z</updated><author><name>Vasil Vangelovski</name></author><id>tag:brainacle.com,2010-06-15:pgbouncer-makes-a-difference.html</id><summary type="html">&lt;p&gt;Last week I was building VMware images for database and web server
 appliances that would host a fairly large Django application. The
 application is backed by a PostgreSQL database and I was looking for
 some info on compiling/configuring pgpool on Debian (I like to compile
@@ -1258,7 +1481,7 @@ connect to pgbouncer instead. The results show something close to a
 50% increase in responsiveness:&lt;/p&gt;
 &lt;img alt="https://spreadsheets.google.com/oimg?key=0ApNjbkQcMGV4dGktNUpCUmtsbWFoWHc5WFRjQjFXV0E&amp;amp;oid=2&amp;amp;zx=8zp184e7ixus" src="https://spreadsheets.google.com/oimg?key=0ApNjbkQcMGV4dGktNUpCUmtsbWFoWHc5WFRjQjFXV0E&amp;amp;oid=2&amp;amp;zx=8zp184e7ixus" /&gt;
 &lt;/div&gt;
-</summary><category term="django"></category><category term="pgbouncer"></category><category term="pgpool"></category><category term="postgresql"></category></entry><entry><title>Django Toolbox for Komodo</title><link href="http://brainacle.com/django-toolbox-for-komodo.html" rel="alternate"></link><updated>2010-05-03T16:08:00Z</updated><author><name>Vasil Vangelovski</name></author><id>tag:brainacle.com,2010-05-03:/django-toolbox-for-komodo.html/</id><summary type="html">&lt;p&gt;If you’re using TextMate for Django development you’ve probably came
+</summary><category term="django"></category><category term="pgbouncer"></category><category term="pgpool"></category><category term="postgresql"></category></entry><entry><title>Django Toolbox for Komodo</title><link href="http://brainacle.com/django-toolbox-for-komodo.html" rel="alternate"></link><updated>2010-05-03T16:08:00Z</updated><author><name>Vasil Vangelovski</name></author><id>tag:brainacle.com,2010-05-03:django-toolbox-for-komodo.html</id><summary type="html">&lt;p&gt;If you’re using TextMate for Django development you’ve probably came
 across the &lt;a class="reference external" href="http://svn.textmate.org/trunk/Bundles/Python%20Django.tmbundle/"&gt;Python Django&lt;/a&gt;
 and Python &lt;a class="reference external" href="http://svn.textmate.org/trunk/Bundles/Python%20Django.tmbundle/"&gt;Django Template&lt;/a&gt; bundles.&lt;/p&gt;
 &lt;p&gt;The Django Toolbox for Komodo does most of what the TextMate bundles
@@ -1270,7 +1493,7 @@ Abbreviations&lt;/a&gt;
 add-on and set a keyboard shortcut (eg. TAB) to the
 command “Insert Abbreviation Snippet By Name”.&lt;/p&gt;
 &lt;p&gt;Download link: &lt;a class="reference external" href="/static/downloads/DjangoKomodoToolbox-0.1.kpz"&gt;DjangoKomodoToolbox-0.1.kpz&lt;/a&gt;&lt;/p&gt;
-</summary><category term="development"></category><category term="editors"></category><category term="komodo"></category><category term="django"></category></entry><entry><title>JqCarousel Three-D</title><link href="http://brainacle.com/jqcarousel-three-d.html" rel="alternate"></link><updated>2010-01-27T19:59:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2010-01-27:/jqcarousel-three-d.html/</id><summary type="html">&lt;p&gt;This plugin was coded to prove a point. We saw another similar plugin like this,
+</summary><category term="development"></category><category term="editors"></category><category term="komodo"></category><category term="django"></category></entry><entry><title>JqCarousel Three-D</title><link href="http://brainacle.com/jqcarousel-three-d.html" rel="alternate"></link><updated>2010-01-27T19:59:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2010-01-27:jqcarousel-three-d.html</id><summary type="html">&lt;p&gt;This plugin was coded to prove a point. We saw another similar plugin like this,
 but it was only for sale with obfuscated code, so I decided to write it and opensource it.
 It doesn't have the limited functionality and the custom implementation of the paid ones,
 it is easy to implement and highly customizable. Works with images and other HTML containers.&lt;/p&gt;
@@ -1306,7 +1529,7 @@ central element and all other elements are resized relative to it.&lt;/p&gt;
 &lt;p&gt;&lt;a class="reference external" href="/static/uploads/jqcarousel3d/Carousel3D3.js"&gt;Download&lt;/a&gt; the plugin and get a
 fresh copy of &lt;a class="reference external" href="http://jquery.com/"&gt;JQuery&lt;/a&gt; and you're set.&lt;/p&gt;
 &lt;p&gt;Enjoy&lt;/p&gt;
-</summary><category term="javascript"></category><category term="jquery"></category><category term="plugin"></category><category term="ui"></category></entry><entry><title>Benchmark of django deployment techniques</title><link href="http://brainacle.com/benchmark-of-django-deployment-techniques.html" rel="alternate"></link><updated>2010-01-19T19:55:00Z</updated><author><name>Vasil Vangelovski</name></author><id>tag:brainacle.com,2010-01-19:/benchmark-of-django-deployment-techniques.html/</id><summary type="html">&lt;p&gt;I made a benchmark of different Django deployment techniques and configurations
+</summary><category term="javascript"></category><category term="jquery"></category><category term="plugin"></category><category term="ui"></category></entry><entry><title>Benchmark of django deployment techniques</title><link href="http://brainacle.com/benchmark-of-django-deployment-techniques.html" rel="alternate"></link><updated>2010-01-19T19:55:00Z</updated><author><name>Vasil Vangelovski</name></author><id>tag:brainacle.com,2010-01-19:benchmark-of-django-deployment-techniques.html</id><summary type="html">&lt;p&gt;I made a benchmark of different Django deployment techniques and configurations
 mostly for my personal purposes. The results are published in the hope that it
 would save others some time. The benchmark was not designed to test the speed
 of Django itself, only to give relative comparison between different techniques
@@ -1461,7 +1684,7 @@ graphs.&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-</summary><category term="django"></category><category term="python"></category><category term="deployment"></category><category term="sys"></category><category term="benchmark"></category></entry><entry><title>Announcing Django-audit-log</title><link href="http://brainacle.com/announcing-django-audit-log.html" rel="alternate"></link><updated>2009-12-22T21:39:00Z</updated><author><name>Vasil Vangelovski</name></author><id>tag:brainacle.com,2009-12-22:/announcing-django-audit-log.html/</id><summary type="html">&lt;p&gt;For those unfamiliar with the term, a definition from Wikipedia:&lt;/p&gt;
+</summary><category term="django"></category><category term="python"></category><category term="deployment"></category><category term="sys"></category><category term="benchmark"></category></entry><entry><title>Announcing Django-audit-log</title><link href="http://brainacle.com/announcing-django-audit-log.html" rel="alternate"></link><updated>2009-12-22T21:39:00Z</updated><author><name>Vasil Vangelovski</name></author><id>tag:brainacle.com,2009-12-22:announcing-django-audit-log.html</id><summary type="html">&lt;p&gt;For those unfamiliar with the term, a definition from Wikipedia:&lt;/p&gt;
 &lt;blockquote&gt;
 Audit trail or audit log is a chronological sequence of audit records, each
 of which contains evidence directly pertaining to and resulting from the
@@ -1504,7 +1727,7 @@ production. The code can be downloaded from the mercurial repository:&lt;/p&gt;
 &lt;strong&gt;Feature requests are always welcome.&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;Details on how it works and extension points will be coming up on
 the project wiki page soon.&lt;/p&gt;
-</summary><category term="django"></category><category term="python"></category><category term="audit-log"></category></entry><entry><title>Livescape jQuery Live Landscape</title><link href="http://brainacle.com/livescape-jquery-live-landscape.html" rel="alternate"></link><updated>2009-12-15T19:56:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2009-12-15:/livescape-jquery-live-landscape.html/</id><summary type="html">&lt;p&gt;The idea behind this plugin is to have some kind of landscape container that
+</summary><category term="django"></category><category term="python"></category><category term="audit-log"></category></entry><entry><title>Livescape jQuery Live Landscape</title><link href="http://brainacle.com/livescape-jquery-live-landscape.html" rel="alternate"></link><updated>2009-12-15T19:56:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2009-12-15:livescape-jquery-live-landscape.html</id><summary type="html">&lt;p&gt;The idea behind this plugin is to have some kind of landscape container that
 will contain objects moving inside of it e.g. sky with the clouds moving.
 The plugin is built simple, has simple implementation, it is very easy to
 use, yet very flexible. You only need the landscape image, the object images

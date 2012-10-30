@@ -8,6 +8,9 @@ Multiseating with KDE and XBMC Like a boss
 :category: Miscellaneous
 
 
+`UPDATED with udev, modular configuration and less headache here. <http://brainacle.com/multiseating-with-kde-and-xbmc-like-a-boss-update.html>`_
+#################################################################################################################################################
+
 
 Linux multi-seat setup is a setup where multiple users can use the same PC simultaneously.
 You have a monitor and input devices for each of those users, and a separate X session for all.

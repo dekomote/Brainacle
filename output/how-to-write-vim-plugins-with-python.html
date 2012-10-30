@@ -4,7 +4,7 @@
         <title>How to write vim plugins with python</title>
         <meta charset="utf-8" />
         <link rel="stylesheet" href="./theme/css/main.css" type="text/css" />
-        <link href="./feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Brainacle ATOM Feed" />
+        <link href="./" type="application/atom+xml" rel="alternate" title="Brainacle ATOM Feed" />
         
 
 
@@ -37,7 +37,7 @@
                 
                 
                 
-                    <li><a href="./pages/about.html">About</a></li>
+                    <li><a href="./pages/pages/about.html">About</a></li>
                 
                 
                 
@@ -106,7 +106,7 @@ and will display it in the current buffer.</p>
 <p>Start by opening &quot;vimmit.vim&quot; file (in vim). Since we are writing python code,
 its good to check if Vim supports Python:</p>
 <div class="highlight"><pre><span class="k">if</span> <span class="p">!</span>has<span class="p">(</span><span class="s1">&#39;python&#39;</span><span class="p">)</span>
-    echo <span class="c">&quot;Error: Required vim compiled with +python&quot;</span>
+    echo <span class="s2">&quot;Error: Required vim compiled with +python&quot;</span>
     <span class="k">finish</span>
 <span class="k">endif</span>
 </pre></div>
@@ -193,10 +193,10 @@ argument states how many arguments the command will take.</p>
 <p>Q: How does one access functional arguments?</p>
 <div class="highlight"><pre><span class="k">function</span><span class="p">!</span> SomeName<span class="p">(</span>arg1<span class="p">,</span> arg2<span class="p">,</span> arg3<span class="p">)</span>
 <span class="c">    &quot; Get the first argument by name in VimL</span>
-    <span class="k">let</span> firstarg<span class="p">=</span>a:arg1
+    <span class="k">let</span> firstarg<span class="p">=</span><span class="k">a</span>:arg1
 
 <span class="c">    &quot; Get the second argument by position in Viml</span>
-    <span class="k">let</span> secondarg<span class="p">=</span>a:<span class="m">1</span>
+    <span class="k">let</span> secondarg<span class="p">=</span><span class="k">a</span>:<span class="m">1</span>
 
 <span class="c">    &quot; Get the arguments in python</span>
 
@@ -217,14 +217,14 @@ and you can mix them with named arguments (arg1, arg2, ...)</p>
 best thing to do is check if it exists and if doesn't define it and assign some
 default value to it:</p>
 <div class="highlight"><pre><span class="k">if</span> <span class="p">!</span>exists<span class="p">(</span><span class="s2">&quot;g:reddit_apicall_timeout&quot;</span><span class="p">)</span>
-    <span class="k">let</span> g:reddit_apicall_timeout<span class="p">=</span><span class="m">40</span>
+    <span class="k">let</span> <span class="k">g</span>:reddit_apicall_timeout<span class="p">=</span><span class="m">40</span>
 <span class="k">endif</span>
 </pre></div>
 <p>You can access it from python using the vim module:</p>
 <div class="highlight"><pre><span class="n">TIMEOUT</span> <span class="o">=</span> <span class="n">vim</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&quot;g:reddit_apicall_timeout&quot;</span><span class="p">)</span>
 </pre></div>
 <p>If you want to override this setting, you can write:</p>
-<div class="highlight"><pre><span class="k">let</span> g:reddit_apicall_timeout<span class="p">=</span><span class="m">60</span>
+<div class="highlight"><pre><span class="k">let</span> <span class="k">g</span>:reddit_apicall_timeout<span class="p">=</span><span class="m">60</span>
 </pre></div>
 <p>in .vimrc .</p>
 </div>
@@ -279,7 +279,7 @@ first functional argument).</p>
                 <div class="social">
                         <h2>social</h2>
                         <ul>
-                            <li><a href="./feeds/all.atom.xml" rel="alternate">atom feed</a></li>
+                            <li><a href="./" rel="alternate">atom feed</a></li>
                             
 
                         
