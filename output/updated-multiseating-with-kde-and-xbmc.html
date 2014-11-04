@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>UPDATED: Multiseating with KDE and XBMC</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="http://brainacle.com/theme/css/main.css" type="text/css" />
+        <link href="http://brainacle.com/" type="application/atom+xml" rel="alternate" title="Brainacle ATOM Feed" />
+
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://brainacle.com/css/ie.css"/>
+                <script src="http://brainacle.com/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://brainacle.com/css/ie6.css"/><![endif]-->
+
+</head>
+
+<body id="index" class="home">
+    <a href="#index" id="goto-top">TOP</a>
+    <a href="#extras" id="goto-bottom">Links/Blogroll</a>
+<a href="https://github.com/dekomote/Brainacle">
+<img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" />
+</a>
+        <header id="banner" class="body">
+                <h1><a href="http://brainacle.com"><img src="http://brainacle.com/theme/images/brainacle_logo.png" alt="Brainacle "/></a></h1>
+                <nav><ul>
+                    <li><a href="http://brainacle.com">Home</a></li>
+                    <li><a href="http://brainacle.com/pages/pages/about.html">About</a></li>
+                    <li ><a href="http://brainacle.com/category/Coding.html">Coding</a></li>
+                    <li class="active"><a href="http://brainacle.com/category/Miscellaneous.html">Miscellaneous</a></li>
+                    <li ><a href="http://brainacle.com/category/Sys.html">Sys</a></li>
+                <li><a href="http://brainacle.com/archives.html">Archives</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+        
+<section id="content" class="body">    
+<article>
+        <header> <h1 class="entry-title"><a href="updated-multiseating-with-kde-and-xbmc.html"
+        rel="bookmark" title="Permalink to UPDATED: Multiseating with KDE and XBMC">UPDATED: Multiseating with KDE and XBMC</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="dekomote">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+ </header>
+        <div class="entry-content">
+        <footer class="post-info">
+                <abbr class="published" title="2012-10-30T23:03:00">
+                    Tue 30 October 2012
+                </abbr>
+                <address class="vcard author">
+                        By <a class="url fn" href="#">Dejan Noveski</a>
+                </address>
+                <p>In <a href="http://brainacle.com/category/Miscellaneous.html">Miscellaneous</a>. 
+<p>tags: <a href="http://brainacle.com/tag/kde.html">kde</a> <a href="http://brainacle.com/tag/xbmc.html">xbmc</a> <a href="http://brainacle.com/tag/desktop.html">desktop</a> <a href="http://brainacle.com/tag/linux.html">linux</a> <a href="http://brainacle.com/tag/miscellaneous.html">miscellaneous</a> <a href="http://brainacle.com/tag/multiseat.html">multiseat</a> <a href="http://brainacle.com/tag/xorg.html">xorg</a> </p></p>        </footer><!-- /.post-info -->
+        <p>A while ago, I wrote a how-to concerning a multiseat setup with xbmc and KDE. Since then, I've done a lot of tweaks to
+the system, optimized the configurations, made them more modular and DE independent. Also, UDEV RULES!</p>
+<p>Make sure to read the old article <a class="reference external" href="http://brainacle.com/multiseating-with-kde-and-xbmc-like-a-boss.html">here</a></p>
+<p>You can skip the part with the configurations, but if you have time, see how the old system was and how it is now.</p>
+<p>Again, It's best if I cover my behind so:</p>
+<div class="section" id="backup-all-the-files-you-ll-be-changing-before-you-start-changing-them-i-don-t-take-any-responsibility-for-any-damage-you-might-cause">
+<h2><strong>Backup all the files you'll be changing before you start changing them. I don't take any responsibility for any damage you might cause.</strong></h2>
+<p>Lets start configuring!</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration</h2>
+<p>Before you start, make sure you have a fresh distro. 3.2+ kernel, xorg 1.10+, evdev drivers for mouse and keyboard.</p>
+<div class="section" id="finding-out-busid-of-the-gpus">
+<h3>Finding out BusId of the GPUs</h3>
+<p>We use BusId of the GPU to configure the &quot;Device&quot; parts in xorg.conf. The BusID is a string that looks like &quot;PCI:1:0:0&quot;.
+To find out the right BusID, use <strong>lspci | egrep &quot;VGA|Display&quot;</strong>. The output should look something like this:</p>
+<blockquote>
+00:02.0 Display controller: Intel Corporation 2nd Generation Core Processor Family Integrated Graphics Controller (rev 09)
+01:00.0 VGA compatible controller: Advanced Micro Devices [AMD] nee ATI Juniper XT [AMD Radeon HD 6000 Series]</blockquote>
+<p>The output is pretty much straightforward. You can see which Bus is which GPU. So, based on this, your BusIDs would be
+<strong>PCI:0:2:0</strong> and <strong>PCI:1:0:0</strong>. Save those strings somewhere, you'll need them later.</p>
+</div>
+<div class="section" id="configuring-udev">
+<h3>Configuring Udev</h3>
+<p>Here's the fun part :). We write udev rules to <strong>tag</strong> the inputs, so we can assign them to specific seats.</p>
+<p>First, we have to distinguish the different inputs for the seats by some identifier. If your input are different models and/or vendors
+it's very easy. If not, comment me, and if there's enough comments, I'll try to write up a good Udev tutorial on how to find
+sys paths, query by advanced parameters etc.</p>
+<p>So now, open a terminal and write 'lsusb'. The output should look like this:</p>
+<div class="highlight"><pre>Bus 001 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
+Bus 003 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 001 Device 003: ID 046d:c50e Logitech, Inc. Cordless Mouse Receiver
+Bus 003 Device 003: ID 1058:1021 Western Digital Technologies, Inc. Elements 2TB
+Bus 003 Device 004: ID 046d:c318 Logitech, Inc. Illuminated Keyboard
+Bus 003 Device 005: ID 1532:0016 Razer USA, Ltd DeathAdder Mouse
+</pre></div>
+<p>Notice the ID. Its meaning is VENDOR_ID:PRODUCT_ID. My inputs are 046d:c50e, 046d:c318 and 1532:0016.</p>
+<p>Save your IDs.</p>
+<p>Next, go to /etc/udev/rules.d and create a script called <em>99-multiseat.rules</em>.</p>
+<p>Next few lines should go in it:</p>
+<div class="highlight"><pre><span class="nv">SUBSYSTEM</span><span class="o">==</span><span class="s2">&quot;input&quot;</span>, ENV<span class="o">{</span>ID_INPUT.tags<span class="o">}=</span><span class="s2">&quot;input_default&quot;</span>
+<span class="nv">SUBSYSTEM</span><span class="o">==</span><span class="s2">&quot;input&quot;</span>, ENV<span class="o">{</span>ID_VENDOR_ID<span class="o">}==</span><span class="s2">&quot;046d&quot;</span>, ENV<span class="o">{</span>ID_MODEL_ID<span class="o">}==</span><span class="s2">&quot;c50e&quot;</span>, ENV<span class="o">{</span>ID_INPUT.tags<span class="o">}=</span><span class="s2">&quot;input_right&quot;</span>
+</pre></div>
+<p>The first line tags all inputs with tag &quot;input_default&quot;. The second line tags the specific input with Vendor ID 046d and model ID c50e with the tag &quot;input right&quot;.
+Change the values to your vendor and model ID.</p>
+<p>Save the script, mark it +x and reboot.</p>
+</div>
+<div class="section" id="configuring-x">
+<h3>Configuring X</h3>
+<p>Last how-to used one xorg.conf. Now, we'll use main seat and off-seat configuration files for xorg.conf.</p>
+<p>Open /etc/X11/xorg.conf for editing, as root user. If you don't have that file, just create it. <strong>Note:</strong>
+Different distros might have different xorg.conf path. Most of the distros use /etc/X11/.</p>
+<p>We'll use a simple, barebone xorg configuration, and let X autoconfigure everything else:</p>
+<div class="highlight"><pre>Section <span class="s2">&quot;ServerFlags&quot;</span>
+    <span class="c"># Xorg will otherwise not start if it can&#39;t find a mouse to use. Better safe than sorry.</span>
+    Option  <span class="s2">&quot;AllowMouseOpenFail&quot;</span>    <span class="s2">&quot;true&quot;</span>
+EndSection
+
+Section <span class="s2">&quot;Device&quot;</span>
+    Identifier <span class="s2">&quot;gfx_left&quot;</span>
+    Driver <span class="s2">&quot;radeon&quot;</span>
+    BusID       <span class="s2">&quot;PCI:1:0:0&quot;</span>
+    EndSection
+
+    Section <span class="s2">&quot;InputClass&quot;</span>
+    Identifier <span class="s2">&quot;ignore_other_seats&quot;</span>
+    MatchTag <span class="s2">&quot;input_right&quot;</span>
+    Option <span class="s2">&quot;Ignore&quot;</span> <span class="s2">&quot;yes&quot;</span>
+EndSection
+</pre></div>
+<p><strong>That's ALL!</strong> By using MatchTag, we match the inputs tagged as &quot;input_right&quot; and we &quot;Ignore&quot; them.
+Note the BussID in the &quot;Device&quot; section. It should match your primary GPU.</p>
+<p>Save the script. This should work independently of the next configuration file.</p>
+<p>Open /etc/X11/xorg-xbmc.conf for editing, as root user.</p>
+<div class="highlight"><pre>Section <span class="s2">&quot;Device&quot;</span>
+    Identifier <span class="s2">&quot;gfx_right&quot;</span>
+    Driver <span class="s2">&quot;intel&quot;</span>
+    BusID       <span class="s2">&quot;PCI:0:2:0&quot;</span>
+EndSection
+
+Section <span class="s2">&quot;InputClass&quot;</span>
+    Identifier <span class="s2">&quot;ignore_other_seats&quot;</span>
+    Option <span class="s2">&quot;Ignore&quot;</span> <span class="s2">&quot;yes&quot;</span>
+EndSection
+
+Section <span class="s2">&quot;InputClass&quot;</span>
+    Identifier <span class="s2">&quot;input_right&quot;</span>
+    MatchTag <span class="s2">&quot;input_right&quot;</span>
+    Option <span class="s2">&quot;Ignore&quot;</span> <span class="s2">&quot;no&quot;</span>
+EndSection
+</pre></div>
+<p>This config will be used by the off-seat xserver. We point to the graphic card, we tell it to ignore all the inputs except
+those tagged as &quot;input_right&quot; and we're set here.</p>
+</div>
+<div class="section" id="testing-the-configuration">
+<h3>Testing the configuration</h3>
+<p>First, let the main xserver load the xorg.conf. Switch to runlevel 3 and then 5 again (telinit [runlevel]).</p>
+<p>When the main seat is up, open up a terminal, and execute this:</p>
+<div class="highlight"><pre>/bin/su -- - <span class="o">[</span>your off-seat user<span class="o">]</span> -c <span class="s2">&quot;xinit -- /usr/bin/X :2 vt9 -nolisten tcp -config xorg-xbmc.conf -sharevts -novtswitch&quot;</span> &lt;/dev/tty9 &gt;/dev/tty9 2&gt;/dev/tty9
+</pre></div>
+<p>It should get the server up.</p>
+<p>If you want to daemonize this, open up a init script (either /etc/init.d/xorg-offseat or /etc/rc.d/xorg-offseat depending on distro) and inser the following:</p>
+<div class="highlight"><pre><span class="c">#!/bin/sh</span>
+
+<span class="nb">set</span> -e
+
+<span class="nv">PATH</span><span class="o">=</span>/usr/local/bin:/usr/local/sbin:/bin:/usr/bin:/sbin:/usr/sbin
+<span class="nv">DAEMON</span><span class="o">=</span>/usr/bin/startx
+<span class="nv">PIDFILE</span><span class="o">=</span>/var/run/xorg-offseat.pid
+<span class="nv">USER</span><span class="o">=</span><span class="s2">&quot;[your offseat user here]&quot;</span>
+<span class="nv">HOME</span><span class="o">=</span>~<span class="o">[</span>your offseat user home dir here<span class="o">]</span>
+<span class="nv">CONFIG</span><span class="o">=</span><span class="s2">&quot;xorg-xmbc.conf&quot;</span>
+
+<span class="k">case</span> <span class="s2">&quot;$1&quot;</span> in
+  start<span class="o">)</span>
+    sleep 5s
+    <span class="nb">echo</span> -n <span class="s2">&quot;Starting X session: startx&quot;</span>
+    <span class="nb">cd</span> <span class="nv">$HOME</span>
+    /bin/su -- - <span class="nv">$USER</span> -c <span class="s2">&quot;xinit -- /usr/bin/X :2 vt9 -nolisten tcp -config $CONFIG -sharevts -novtswitch&quot;</span> &lt;/dev/tty9 &gt;/dev/tty9 2&gt;/dev/tty9 &amp; <span class="nb">echo</span> <span class="nv">$!</span> &gt;<span class="nv">$PIDFILE</span>
+    <span class="c">#/usr/bin/startx -- :2 vt9 -nolisten tcp -config $CONFIG -sharevts -novtswitch&quot;</span>
+    <span class="nb">echo</span> <span class="s2">&quot;.&quot;</span>
+  ;;
+
+  restart<span class="o">)</span>
+    /etc/rc.d/xorg-offseat stop
+    /etc/rc.d/xorg-offseat start
+  ;;
+
+  stop<span class="o">)</span>
+    <span class="nb">echo</span> -n <span class="s2">&quot;Stopping X session: startx&quot;</span>
+    <span class="nb">kill</span> <span class="sb">`</span>cat <span class="nv">$PIDFILE</span><span class="sb">`</span> <span class="o">||</span> <span class="nb">echo</span> -n <span class="s2">&quot; not running&quot;</span>
+    <span class="nb">echo</span> <span class="s2">&quot;.&quot;</span>
+  ;;
+
+  *<span class="o">)</span>
+    <span class="nb">echo</span> <span class="s2">&quot;Usage: /etc/init.d/xorg-offseat {start|stop|restart}&quot;</span>
+    <span class="nb">exit </span>1
+    ;;
+<span class="k">esac</span>
+</pre></div>
+<p>You can start this as you start any other daemons. And stop it as well.</p>
+<p>If you don't want to use daemons, you can always rely on your display manager.
+I used KDM, trieg gdm but a lot has changed and the docs aren't much updated, so I can't be sure if it'll work.</p>
+</div>
+<div class="section" id="configuring-kdm">
+<h3>Configuring KDM</h3>
+<p>Open <strong>/usr/share/config/kdm/kdmrc</strong> for editing, as root.</p>
+<p>In the [General] section, change the <strong>ReserveServers</strong> and <strong>StaticServers</strong> as follows:</p>
+<div class="highlight"><pre><span class="nv">ReserveServers</span><span class="o">=</span>:2,:3
+<span class="nv">StaticServers</span><span class="o">=</span>:0,:1
+</pre></div>
+<p>At the end, add this snippet:</p>
+<div class="highlight"><pre><span class="o">[</span>X-:0-Core<span class="o">]</span>
+<span class="nv">ServerArgsLocal</span><span class="o">=</span>-nolisten tcp -config xorg.conf
+
+<span class="o">[</span>X-:1-Core<span class="o">]</span>
+<span class="nv">ServerArgsLocal</span><span class="o">=</span>-nolisten tcp -config xorg-xbmc.conf -sharevts -novtswitch
+</pre></div>
+<p>If you want a user to auto-login on the second seat (in my case, I want the xbmc user to autologin),  add this to the file:</p>
+<div class="highlight"><pre><span class="o">[</span>X-:1-Core<span class="o">]</span>
+<span class="nv">AutoLoginEnable</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">AutoLoginLocked</span><span class="o">=</span><span class="nb">false</span>
+<span class="nv">AutoLoginUser</span><span class="o">=</span>xbmc
+<span class="nv">ClientLogFile</span><span class="o">=</span>.xsession-errors
+</pre></div>
+<p><strong>Don't execute custom sessions!</strong>. It's bugged. Try the default one and autostart xbmc from there.</p>
+</div>
+</div>
+<div class="section" id="things-from-the-old-how-to">
+<h2>Things from the old How-To</h2>
+<div class="section" id="tweaking-hdmi-audio-for-xbmc">
+<h3>Tweaking HDMI audio for XBMC</h3>
+<p>You need to find the alsa sinks of your system. To do that, use <strong>aplay -l</strong>. The output should be something like this:</p>
+<div class="highlight"><pre>**** List of PLAYBACK Hardware Devices ****
+card 0: PCH <span class="o">[</span>HDA Intel PCH<span class="o">]</span>, device 0: ALC887-VD Analog <span class="o">[</span>ALC887-VD Analog<span class="o">]</span>
+  Subdevices: 1/1
+  Subdevice <span class="c">#0: subdevice #0</span>
+card 0: PCH <span class="o">[</span>HDA Intel PCH<span class="o">]</span>, device 1: ALC887-VD Digital <span class="o">[</span>ALC887-VD Digital<span class="o">]</span>
+  Subdevices: 1/1
+  Subdevice <span class="c">#0: subdevice #0</span>
+card 0: PCH <span class="o">[</span>HDA Intel PCH<span class="o">]</span>, device 3: HDMI 0 <span class="o">[</span>HDMI 0<span class="o">]</span>
+  Subdevices: 1/1
+  Subdevice <span class="c">#0: subdevice #0</span>
+card 0: PCH <span class="o">[</span>HDA Intel PCH<span class="o">]</span>, device 7: HDMI 1 <span class="o">[</span>HDMI 1<span class="o">]</span>
+  Subdevices: 1/1
+  Subdevice <span class="c">#0: subdevice #0</span>
+card 1: Generic <span class="o">[</span>HD-Audio Generic<span class="o">]</span>, device 3: HDMI 0 <span class="o">[</span>HDMI 0<span class="o">]</span>
+  Subdevices: 1/1
+  Subdevice <span class="c">#0: subdevice #0</span>
+</pre></div>
+<p>Next, find out which sink goes to the right HDMI. Use aplay for that:</p>
+<blockquote>
+aplay -D plughw:[cardId],[deviceId] /usr/share/sounds/alsa/Front_Center.wav</blockquote>
+<p>Replace cardId and deviceId from the list of playback hardware devices. When you hear a sound on your TV,
+you've hit the right device. Just remember the card id and the device id.</p>
+<p>Go to XBMC System Settings-&gt;Audio output. Choose Audio output device - Custom. Insert plughw:[cardId],[deviceId](e.g. plughw:0,7) in Custom audio device. You're done. XBMC should route audio thru your HDMI.</p>
+</div>
+<div class="section" id="tweaking-policykit">
+<h3>Tweaking policykit</h3>
+<p>If the second seat is unable to use removable drives, bluetooth dongles, policykit is to blame.</p>
+<p>Add/Edit <strong>/etc/polkit-1/localauthority/50-local.d/mseat.pkla</strong>:</p>
+<div class="highlight"><pre><span class="o">[</span>allow operations<span class="o">]</span>
+<span class="nv">Identity</span><span class="o">=</span>unix-group:plugdev
+<span class="nv">Action</span><span class="o">=</span>org.freedesktop.udisks.*;org.blueman.*;org.freedesktop.pulseaudio
+<span class="nv">ResultAny</span><span class="o">=</span>yes
+<span class="nv">ResultActive</span><span class="o">=</span>yes
+<span class="nv">ResultInactive</span><span class="o">=</span>yes
+</pre></div>
+<p>That should be it.</p>
+<p>If this setup doesn't work for you, don't give up easily. Ask around forums and irc. These setups can differ largely, based on the hardware and the setup. You can ask in comments as well. I'll try to help out as much as I can.</p>
+</div>
+</div>
+<div class="section" id="post-scriptum">
+<h2>Post Scriptum</h2>
+<p>Comment me with your issues, I'll try to help as much as I can. Try to leave verbose outputs please. Best of luck with your multi-seat setups!</p>
+</div>
+
+        </div><!-- /.entry-content -->
+        <div class="comments">
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "updated-multiseating-with-kde-and-xbmc.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://Brainacle.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+
+</article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                            <li><a href="http://atomidata.com/">Atomidata</a></li>
+                            <li><a href="http://pressedweb.com/">Pressed Web</a></li>
+                            <li><a href="http://flyeyedesign.com">Flyeye Design</a></li>
+                            <li><a href="/archives.html">Archives</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+                            <li><a href="http://brainacle.com/" rel="alternate">atom feed</a></li>
+
+                            <li><a href="http://twitter.com/dekomote">@dekomote</a></li>
+                            <li><a href="http://twitter.com/itarpeyo">@ItarPeyo</a></li>
+                            <li><a href="https://bitbucket.org/vvangelovski/">Vasil's Bitbucket</a></li>
+                            <li><a href="https://bitbucket.org/dekomote/">Dejan's Bitbucket</a></li>
+                            <li><a href="https://github.com/dekomote">Dejan's Github</a></li>
+                            <li><a href="https://github.com/vvangelovski">Vasil's Github</a></li>
+                            <li><a href="mailto:info@atomidata.com">Mail Us</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <address id="about" class="vcard body">
+                &copy; Brainacle 2011 | Proudly powered by <a href="http://alexis.notmyidea.org/pelican/">Pelican</a>.
+                </address><!-- /#about -->
+        </footer><!-- /#contentinfo -->
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-26853324-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+</body>
+</html>

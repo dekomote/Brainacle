@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Brainacle</title><link>http://brainacle.com/</link><description></description><atom:link href="http://brainacle.com/feeds/vasil-vangelovski.rss.xml" rel="self"></atom:link><lastBuildDate>Tue, 15 Jun 2010 23:17:00 -0000</lastBuildDate><item><title>Pgbouncer Makes a Difference</title><link>http://brainacle.com/pgbouncer-makes-a-difference.html</link><description>&lt;p&gt;Last week I was building VMware images for database and web server
+appliances that would host a fairly large Django application. The
+application is backed by a PostgreSQL database and I was looking for
+some info on compiling/configuring pgpool on Debian (I like to compile
+stuff when I can, especially when the last version of Debian is 2
+years old). Googling around I came across some very interesting posts
+on mailing lists and SO regarding Django, PostgeSQL and connection
+pooling.&lt;/p&gt;
+&lt;p&gt;Among other things, people seem to have a notion that using pooling
+middleware won’t accomplish much as the web server still needs to open
+a TCP connection and that is the source of a noticeable overhead for
+each request. So they’ve come up with solutions to avoid opening TCP
+connections as much as possible, trying to accomplish something
+similar to what SQLAlchemy’s connection pool does, keeping the web
+server connected to the database with multiple connections at all
+times. These solutions of course range from changing the code in
+django.db.backends.... to monkey-patching it.&lt;/p&gt;
+&lt;p&gt;When you change Django’s code you’ve just created a fork of a growing
+and evolving open source project and based your own project around
+that fork you have to maintain yourself. Monkey-patching is not as
+bad, but comes very close regarding maintenance problems. And is all
+that really necessary?&lt;/p&gt;
+&lt;div class="section" id="the-overhead-doesnt-stem-from-opening-tcp-connections"&gt;
+&lt;h2&gt;The Overhead Doesn’t Stem From Opening TCP Connections&lt;/h2&gt;
+&lt;p&gt;Every time you open a database connection (session) to execute some
+SQL on a Postgres database the Postgres server spawns a new process
+and upon closing the connection (session) from your application that
+process is shut down. With the way Django handles database sessions
+this is repeated for every request. Which means for every request
+Postgres will have to spawn a new worker process that will last for
+the duration of the database session involved in responding to that
+HTTP request. The overhead involved in opening a TCP connection to a
+process running on the same machine or on the same network is not much
+compared to the overhead involved in spawning a new process.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="solutions-do-exist"&gt;
+&lt;h2&gt;Solutions Do Exist&lt;/h2&gt;
+&lt;p&gt;So if the overhead for each request comes from spawning new processes
+then the obvious solution would be to keep that at a minimum level. If
+you keep the connections to the database server open and reuse them
+for every request then the processes spawned at the time the
+connections were established would be reused as the connections are
+reused.&lt;/p&gt;
+&lt;p&gt;But you don’t have to keep your web server connected to the database
+server to achieve this. Two more popular solutions are pgpool II and
+pgbouncer. Both are designed as sort of middleware proxies that sit
+between your application and your database. Pgpool is more of a
+replication and load balancing solution than a connection pool. It
+works as a connection pool because at each connection opened by your
+application to pgpool it will have a separate process handling that
+connection, but it will keep those processes alive and connected to
+the Postgres server even after your application closes those
+connections. So using it would have the effect of lowering the net
+amount of new processes created to serve a certain number of requests
+to your web application. Pgbouncer on the other hand handles all the
+requests between your application and Postgres in a highly efficient
+asynchronous manner by utilizing libevent and not using
+multiprocessing at all, and it will keep the initially opened
+connections for a longer time after your application closes them, so
+making a new connection to pgbouncer will rarely result in Postges
+spawning a process.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-proof"&gt;
+&lt;h2&gt;The Proof&lt;/h2&gt;
+&lt;p&gt;To prove that solutions like pgbouncer do make a difference I created
+a simple test scenario. A very small Django project with one page
+displaying 5 rows from a table in a PostgreSQL database. Both the
+database server and the web server (Apache with mod-wsgi in daemon
+mode) running on one small VM with 1GB of RAM and 4 CPU cores
+assigned.&lt;/p&gt;
+&lt;p&gt;In the first test I configured the application to connect to the
+database server directly and put the page under
+&lt;a class="reference external" href="http://www.joedog.org/index/siege-home"&gt;siege&lt;/a&gt; with 1, 5, 15,&lt;/p&gt;
+&lt;p&gt;50, 100 and 200 concurrent requests, each session lasting for 1
+minute. Then I repeated the process with the application configured to
+connect to pgbouncer instead. The results show something close to a
+50% increase in responsiveness:&lt;/p&gt;
+&lt;img alt="" src="https://spreadsheets.google.com/oimg?key=0ApNjbkQcMGV4dGktNUpCUmtsbWFoWHc5WFRjQjFXV0E&amp;amp;oid=2&amp;amp;zx=8zp184e7ixus" /&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Vasil Vangelovski</dc:creator><pubDate>Tue, 15 Jun 2010 23:17:00 -0000</pubDate><guid>tag:brainacle.com,2010-06-15:pgbouncer-makes-a-difference.html</guid><category>django</category><category>pgbouncer</category><category>pgpool</category><category>postgresql</category></item><item><title>Django Toolbox for Komodo</title><link>http://brainacle.com/django-toolbox-for-komodo.html</link><description>&lt;p&gt;If you’re using TextMate for Django development you’ve probably came
+across the &lt;a class="reference external" href="http://svn.textmate.org/trunk/Bundles/Python%20Django.tmbundle/"&gt;Python Django&lt;/a&gt;
+and Python &lt;a class="reference external" href="http://svn.textmate.org/trunk/Bundles/Python%20Django.tmbundle/"&gt;Django Template&lt;/a&gt; bundles.&lt;/p&gt;
+&lt;p&gt;The Django Toolbox for Komodo does most of what the TextMate bundles
+do, plus integrated shortcuts for the most important links in the
+Django docs. Builtin template filter support is still a work in
+progress.&lt;/p&gt;
+&lt;p&gt;To get the most out of the toolbox, first install the &lt;a class="reference external" href="http://community.activestate.com/xpi/tab-abbreviations"&gt;Tab
+Abbreviations&lt;/a&gt;
+add-on and set a keyboard shortcut (eg. TAB) to the
+command “Insert Abbreviation Snippet By Name”.&lt;/p&gt;
+&lt;p&gt;Download link: &lt;a class="reference external" href="/static/downloads/DjangoKomodoToolbox-0.1.kpz"&gt;DjangoKomodoToolbox-0.1.kpz&lt;/a&gt;&lt;/p&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Vasil Vangelovski</dc:creator><pubDate>Mon, 03 May 2010 16:08:00 -0000</pubDate><guid>tag:brainacle.com,2010-05-03:django-toolbox-for-komodo.html</guid><category>development</category><category>editors</category><category>komodo</category><category>django</category></item><item><title>Benchmark of django deployment techniques</title><link>http://brainacle.com/benchmark-of-django-deployment-techniques.html</link><description>&lt;p&gt;I made a benchmark of different Django deployment techniques and configurations
+mostly for my personal purposes. The results are published in the hope that it
+would save others some time. The benchmark was not designed to test the speed
+of Django itself, only to give relative comparison between different techniques
+for running a Django application in production environments. I'm not affiliated
+with any of the following open source projects: Apache,&amp;nbsp; Nginx, Cherokee,
+mod_wsgi, mod_python, Cherrypy or uWSGI. Further, I'm not claiming to be an
+expert in configuring any of the software mentioned here.&lt;/p&gt;
+&lt;div class="section" id="what-was-measured"&gt;
+&lt;h2&gt;What was measured&lt;/h2&gt;
+&lt;p&gt;The Django project used for the benchmark was a simple application for
+displaying rows from 3 different tables with pagination. Each page had
+references to 3 static files (css, javascript and an image). Each page
+involved rendering a simple template inheriting from a base template
+and including another one, built-in filters were also used. The database
+had more than a million records in all three tables combined. I browsed
+different pages of the application over a proxy which recorded the URLs
+of the browsing session. So for each request that was handled by the application
+there were 3 more requests for static files. For each deployment technique I ran
+4 tests at different concurrency levels for 1 minute making GET requests to the
+recorded URLs. For each test run I recorded throughput (number of requests
+served per second), response time (average time in which a request was served)
+and longest request (the longest time a request was served in each run).
+Only for the tests at highest concurrency levels I recorded memory usage.
+I tried to make sure that only the necessary processes for each test were
+running at a time. Automatic maintenance tasks on the system and the database
+were turned off. Every test cycle was repeated at least 3 times to
+recheck the results.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="hardware-and-software-details"&gt;
+&lt;h2&gt;Hardware and software details&lt;/h2&gt;
+&lt;p&gt;For generating the loads I used Siege and ran all the benchmarks over
+gigabit ethernet from a 2.16 GHz machine with 2 GB of RAM running OS X Snow
+Leopard.&lt;/p&gt;
+&lt;p&gt;The system that served as a web and database server ran in a VMware appliance
+on a 2.8 GHz Core2Duo PC with 8GBs of RAM. The appliance was given only 1GB
+of working memory and assigned both cores of the CPU. Software details:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;Ubuntu 9.10 32b&lt;/li&gt;
+&lt;li&gt;Python 2.6&lt;/li&gt;
+&lt;li&gt;PostgreSQL 8.4&lt;/li&gt;
+&lt;li&gt;Apache 2.2.12 worker MPM&lt;/li&gt;
+&lt;li&gt;Nginx 0.7.64&lt;/li&gt;
+&lt;li&gt;Cherokee 0.99.39&lt;/li&gt;
+&lt;li&gt;Django 1.1&lt;/li&gt;
+&lt;li&gt;psycopg2 2.0.8&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="section" id="tested-configurations"&gt;
+&lt;h2&gt;Tested configurations&lt;/h2&gt;
+&lt;div class="section" id="apache-with-mod-wsgi"&gt;
+&lt;h3&gt;Apache with mod_wsgi&lt;/h3&gt;
+&lt;p&gt;This was the first configuration I tested. Apache was serving both the static
+files and dynamic content via mod_wsgi which ran in daemon mode with 5 processes
+and 1 thread per process.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="nginx-apache-with-mod-wsgi"&gt;
+&lt;h3&gt;Nginx + Apache with mod_wsgi&lt;/h3&gt;
+&lt;p&gt;My preferred configuration for running django sites. Apache with mod_wsgi
+was used only for the dynamic content, requests to these urls were proxied
+by nginx. Static files were served by nginx directly.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="nginx-fcgi"&gt;
+&lt;h3&gt;Nginx + fcgi&lt;/h3&gt;
+&lt;p&gt;Here nginx is used for serving the static content while the dynamic content
+was handled by FastCGI processes. I used all the defaults from the runfcgi
+management command and used a TCP socket instead of a socket file because I
+was bumping into issues with access to the socket file at large numbers of
+concurrent requests.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="cherokee-scgi"&gt;
+&lt;h3&gt;Cherokee + SCGI&lt;/h3&gt;
+&lt;p&gt;This was set up from the Cherokee web based wizard for deploying django
+applications. Static files were served by Cherokee directly. I have to say
+this is by far the&amp;nbsp; easiest method of deploying Django applications in
+production environments.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="cherokee-apache-with-mod-wsgi"&gt;
+&lt;h3&gt;Cherokee + Apache with mod_wsgi&lt;/h3&gt;
+&lt;p&gt;This is essentially the same as Nginx + Apache and mod_wsgi except here
+Cherokee was used as a proxy and for serving static content. Since it's the
+first time I'm using Cherokee everything was configured via the web based admin
+interface and all parameters were left to default values.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="nginx-cherrypy-wsgi-server"&gt;
+&lt;h3&gt;Nginx + Cherrypy WSGI server&lt;/h3&gt;
+&lt;p&gt;Here I used the &lt;a class="reference external" href="http://github.com/lincolnloop/django-cpserver"&gt;django-cpserver&lt;/a&gt;
+management command to run the application in the Cherrypy WSGI server. 5
+Instances of the WSGI server were running behind Nginx as a load balancer.
+Nginx was serving the static files.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configurations-that-are-left-out"&gt;
+&lt;h2&gt;Configurations that are left out&lt;/h2&gt;
+&lt;div class="section" id="apache-with-mod-python"&gt;
+&lt;h3&gt;Apache with mod_python&lt;/h3&gt;
+&lt;p&gt;This was left out because I couldn't get consistent results at 250 concurrent
+requests and the application would often error out at this concurrency level.
+The benchmark already took a significant amount of my time and I'm not
+experienced with mod_python so I decided not to proceed with locating the
+problem or publishing any shaky results.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="uwsgi"&gt;
+&lt;h3&gt;uWSGI&lt;/h3&gt;
+&lt;p&gt;I tried to deploy the application on uWSGI with the Cherokee web based wizard.
+With the default configuration (1 process) the tests ran 4 times slower at high
+concurrency compared to the other configurations. Bumping up the number of
+process to 5 still didn't yield comparable results. At 25 processes I got
+comparable results but memory usage skyrocketed. I still suspect I was doing
+something wrong here, so I didn't publish the results.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="lighttpd"&gt;
+&lt;h3&gt;lighttpd&lt;/h3&gt;
+&lt;p&gt;Personally I avoid using lighty for a number of subjective reasons. When I have
+the time I may update this post with some configurations based on lighty,
+although I wouldn't expect the results to be much different than the ones
+for the Nginx or Cherokee configurations.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-results"&gt;
+&lt;h2&gt;The results&lt;/h2&gt;
+&lt;a class="reference external image-reference" href="http://spreadsheets.google.com/oimg?key=0ApNjbkQcMGV4dGdJOFVicHNGSFJGemFRT1pGMnVQMlE&amp;amp;amp&amp;amp;oid=5&amp;amp;amp&amp;amp;v=1263914004562"&gt;&lt;img alt="" src="http://spreadsheets.google.com/oimg?key=0ApNjbkQcMGV4dGdJOFVicHNGSFJGemFRT1pGMnVQMlE&amp;amp;amp&amp;amp;oid=5&amp;amp;amp&amp;amp;v=1263914004562" /&gt;&lt;/a&gt;
+&lt;a class="reference external image-reference" href="http://spreadsheets.google.com/oimg?key=0ApNjbkQcMGV4dGdJOFVicHNGSFJGemFRT1pGMnVQMlE&amp;amp;amp&amp;amp;oid=7&amp;amp;amp&amp;amp;v=1263914042360"&gt;&lt;img alt="" src="http://spreadsheets.google.com/oimg?key=0ApNjbkQcMGV4dGdJOFVicHNGSFJGemFRT1pGMnVQMlE&amp;amp;amp&amp;amp;oid=7&amp;amp;amp&amp;amp;v=1263914042360" /&gt;&lt;/a&gt;
+&lt;a class="reference external image-reference" href="http://spreadsheets.google.com/oimg?key=0ApNjbkQcMGV4dGdJOFVicHNGSFJGemFRT1pGMnVQMlE&amp;amp;amp&amp;amp;oid=6&amp;amp;amp&amp;amp;v=1263914066019"&gt;&lt;img alt="" src="http://spreadsheets.google.com/oimg?key=0ApNjbkQcMGV4dGdJOFVicHNGSFJGemFRT1pGMnVQMlE&amp;amp;amp&amp;amp;oid=6&amp;amp;amp&amp;amp;v=1263914066019" /&gt;&lt;/a&gt;
+&lt;div class="section" id="memory-usage"&gt;
+&lt;h3&gt;Memory usage&lt;/h3&gt;
+&lt;p&gt;I measured memory usage only at 250 concurrent requests. All the tests ran for
+60 seconds, so you can work out where the load on the server happened from the
+graphs.&lt;/p&gt;
+&lt;div class="section" id="id1"&gt;
+&lt;h4&gt;Apache with mod_wsgi&lt;/h4&gt;
+&lt;a class="reference external image-reference" href="/static/uploads/djbenchmark/mod_wsgi2.png"&gt;&lt;img alt="" src="/static/uploads/djbenchmark/mod_wsgi2-300x225.png" /&gt;&lt;/a&gt;
+&lt;/div&gt;
+&lt;div class="section" id="id2"&gt;
+&lt;h4&gt;Nginx + Apache with mod_wsgi&lt;/h4&gt;
+&lt;a class="reference external image-reference" href="/static/uploads/djbenchmark/nginxmod_wsgi3.png"&gt;&lt;img alt="" src="/static/uploads/djbenchmark/nginxmod_wsgi3-300x225.png" /&gt;&lt;/a&gt;
+&lt;/div&gt;
+&lt;div class="section" id="id3"&gt;
+&lt;h4&gt;Nginx + FCGI&lt;/h4&gt;
+&lt;a class="reference external image-reference" href="/static/uploads/djbenchmark/nginxcgi1.png"&gt;&lt;img alt="" src="/static/uploads/djbenchmark/nginxcgi1-300x225.png" /&gt;&lt;/a&gt;
+&lt;/div&gt;
+&lt;div class="section" id="nginx-cherrypy"&gt;
+&lt;h4&gt;Nginx + Cherrypy&lt;/h4&gt;
+&lt;a class="reference external image-reference" href="/static/uploads/djbenchmark/nginxcp1.png"&gt;&lt;img alt="" src="/static/uploads/djbenchmark/nginxcp1-300x225.png" /&gt;&lt;/a&gt;
+&lt;/div&gt;
+&lt;div class="section" id="id4"&gt;
+&lt;h4&gt;Cherokee + SCGI&lt;/h4&gt;
+&lt;a class="reference external image-reference" href="/static/uploads/djbenchmark/cherokeewscgi1.png"&gt;&lt;img alt="" src="/static/uploads/djbenchmark/cherokeewscgi1-300x225.png" /&gt;&lt;/a&gt;
+&lt;/div&gt;
+&lt;div class="section" id="id5"&gt;
+&lt;h4&gt;Cherokee + Apache with mod_wsgi&lt;/h4&gt;
+&lt;a class="reference external image-reference" href="/static/uploads/djbenchmark/cherokeewsgi1.png"&gt;&lt;img alt="" src="/static/uploads/djbenchmark/cherokeewsgi1-300x225.png" /&gt;&lt;/a&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Vasil Vangelovski</dc:creator><pubDate>Tue, 19 Jan 2010 19:55:00 -0000</pubDate><guid>tag:brainacle.com,2010-01-19:benchmark-of-django-deployment-techniques.html</guid><category>django</category><category>python</category><category>deployment</category><category>sys</category><category>benchmark</category></item><item><title>Announcing Django-audit-log</title><link>http://brainacle.com/announcing-django-audit-log.html</link><description>&lt;p&gt;For those unfamiliar with the term, a definition from Wikipedia:&lt;/p&gt;
+&lt;blockquote&gt;
+Audit trail or audit log is a chronological sequence of audit records, each
+of which contains evidence directly pertaining to and resulting from the
+execution of a business process or system function.&lt;/blockquote&gt;
+&lt;p&gt;How does this come into play in a web application?&lt;/p&gt;
+&lt;p&gt;Lets examine the case of a simple application for keeping track of a store's
+inventory:&lt;/p&gt;
+&lt;p&gt;In the most simple case there would be a single database table in which
+we'd keep details on different products in the store. In the case where
+multiple users would have access to INSERT/UPDATE/DELETE records in the
+products table, one user could insert a product with name, description
+and price, later another user could change the description or even delete
+the whole record. If at some later point we wanted to restore the original
+record or see who made the latest changes we'd have to ask all the users to
+remember what they did. An audit log for this table would provide the means
+of keeping track of all the changes that were made to it and who made the
+changes in a chronological order.&lt;/p&gt;
+&lt;p&gt;&lt;a class="reference external" href="https://code.google.com/p/django-audit-log/"&gt;django-audit-log&lt;/a&gt; provides such
+facilities for your Django models. It's designed to be very simple to add
+chronological tracking to any django model with the least amount of changes
+to your existing code. Adding an audit log for your models is done in
+three steps:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;Add a middleware class in settings.py.&lt;/li&gt;
+&lt;li&gt;Add a manager property to every model you need to keep track of.&lt;/li&gt;
+&lt;li&gt;Execute the syncdb management command.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To keep track of all the changes a separate table will be created for
+each tracked model. This table would have the same column structure as
+the original model plus columns for tracking the time, type of action
+(create, change or delete) and user who did the action. Queries on the
+audit log for a model are made via the manager added in step 2.&lt;/p&gt;
+&lt;p&gt;The project is still under heavy development and there's no
+official release yet. Keep that in mind if you consider using it in
+production. The code can be downloaded from the mercurial repository:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;hg clone https://django-audit-log.googlecode.com/hg/ django-audit-log
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Basic usage instructions can be found on
+&lt;a class="reference external" href="https://code.google.com/p/django-audit-log/wiki/UsageInstructions"&gt;this wiki page&lt;/a&gt; .
+&lt;strong&gt;Feature requests are always welcome.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Details on how it works and extension points will be coming up on
+the project wiki page soon.&lt;/p&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Vasil Vangelovski</dc:creator><pubDate>Tue, 22 Dec 2009 21:39:00 -0000</pubDate><guid>tag:brainacle.com,2009-12-22:announcing-django-audit-log.html</guid><category>django</category><category>python</category><category>audit-log</category></item></channel></rss>

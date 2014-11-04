@@ -1,6 +1,6 @@
-##########################################
-Multiseating with KDE and XBMC Like a boss
-##########################################
+##############################
+Multiseating with KDE and XBMC
+##############################
 
 :date: 2012-05-27 21:03
 :author: Dejan Noveski

@@ -1,0 +1,795 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Brainacle</title><link href="http://brainacle.com/" rel="alternate"></link><link href="http://brainacle.com/feeds/coding.atom.xml" rel="self"></link><id>http://brainacle.com/</id><updated>2012-02-13T20:58:00Z</updated><entry><title>How to use Django Uni-form with Twitter Bootstrap CSS</title><link href="http://brainacle.com/how-to-use-django-uni-form-with-twitter-bootstrap-css.html" rel="alternate"></link><updated>2012-02-13T20:58:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2012-02-13:how-to-use-django-uni-form-with-twitter-bootstrap-css.html</id><summary type="html">&lt;p&gt;I'm sure, most of you, know what &lt;a class="reference external" href="https://github.com/pydanny/django-uni-form"&gt;django-uni-form&lt;/a&gt; is... For those that don't, django-uni-form is a
+very cool django app that makes form management/styling/layouting a breeze. You can do pretty much anything to a form with it: Split it in formsets, add
+HTML between every element, wrap different elements in different containers etc. Also, it produces great HTML, and it manages the &amp;lt;form&amp;gt; tag, as well
+as the submit/reset buttons. If you aren't using it, you should definitely start.&lt;/p&gt;
+&lt;p&gt;&lt;a class="reference external" href="http://twitter.github.com/bootstrap/"&gt;Twitter Bootstrap&lt;/a&gt; is a client side framework by twitter, encompassing many aspects - layout, sane default CSS, typography,
+Javascript plugins, even some icons. It looks very professional, it's easy to use and very popular. The way bootstrap styles a form is what most people need when
+building or prototyping a web app. But, you need to be able to change some css classes and html elements in order to work.&lt;/p&gt;
+&lt;p&gt;Doing this with django-uni-form is extremely easy. All we need to do is change the default &lt;strong&gt;field&lt;/strong&gt; template. I'll start with an example:&lt;/p&gt;
+&lt;div class="section" id="bootstrap"&gt;
+&lt;h2&gt;Bootstrap&lt;/h2&gt;
+&lt;p&gt;This step is easy. Just make sure you have downloaded the Bootstrap CSS file, and that it's properly loaded.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-html"&gt;
+&lt;h2&gt;The HTML&lt;/h2&gt;
+&lt;p&gt;Simple HTML is all we need:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;{% load uni_form_tags %}
+&lt;span class="cp"&gt;&amp;lt;!doctype html&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;html&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;head&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;title&amp;gt;&lt;/span&gt;Django Uniform and Bootstrap&lt;span class="nt"&gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
+  &lt;span class="c"&gt;&amp;lt;!-- LOAD BOOTSTRAP CSS HERE --&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/head&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;body&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;header&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;navbar&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;/header&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;role=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;main&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;container&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;row&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;span12&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+            {% uni_form form form.helper %}
+        &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;hr/&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;footer&amp;gt;&lt;/span&gt;
+      Brainacle 2012
+    &lt;span class="nt"&gt;&amp;lt;/footer&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+  &lt;span class="c"&gt;&amp;lt;!-- LOAD BOOTSTRAP JS HERE --&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/body&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-form"&gt;
+&lt;h2&gt;The Form&lt;/h2&gt;
+&lt;p&gt;I'm making a simple User edit ModelForm, with one extra text field:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.contrib.auth.models&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;User&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.core.urlresolvers&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;reverse&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;uni_form.helper&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;FormHelper&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;uni_form.layout&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ButtonHolder&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Submit&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Fieldset&lt;/span&gt;
+
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;UserEditForm&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ModelForm&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;bio&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;CharField&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;label&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;Bio&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;required&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="n"&gt;widget&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Textarea&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;attrs&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;class&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;span12&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}))&lt;/span&gt;
+
+    &lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Meta&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;model&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;User&lt;/span&gt;
+        &lt;span class="n"&gt;fields&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;username&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;first_name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;last_name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;email&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;FormHelper&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;form_method&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;POST&amp;#39;&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;form_action&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;reverse&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;user_edit_view_name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;form_class&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;form-horizontal&amp;#39;&lt;/span&gt;
+
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+            &lt;span class="n"&gt;Fieldset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                &lt;span class="s"&gt;&amp;#39;Edit Account Info&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="s"&gt;&amp;#39;username&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;first_name&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;last_name&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="s"&gt;&amp;#39;email&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;bio&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;save&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="p"&gt;),&lt;/span&gt;
+            &lt;span class="n"&gt;ButtonHolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                &lt;span class="n"&gt;Submit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;save&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Save&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;css_class&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;btn btn-large btn-primary pull-right&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;super&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;UserEditForm&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Notes:&lt;/strong&gt; We add span10 class to the &amp;quot;bio&amp;quot; field textarea because labels will take 2 spans, and we want the textarea
+fill the entire width. We add class &amp;quot;form-horizontal&amp;quot; to the form, to get the labels position in line with the inputs.
+The button classes are also important.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-magic"&gt;
+&lt;h2&gt;The Magic&lt;/h2&gt;
+&lt;p&gt;Now, we have to tell uni-form to generate html that will be compatible with Bootstrap.
+Lucky enough, uni-form provides us with the ability to override the generic field HTML template.
+Just make a new file called &lt;strong&gt;field.html&lt;/strong&gt; inside &lt;strong&gt;[template root path]/uni_form/&lt;/strong&gt; folder with the
+following content:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;{% if field.is_hidden %}
+    {{ field }}
+{% else %}
+&lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;control-group {% if field.errors %}error{% endif %}&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;label&lt;/span&gt; &lt;span class="na"&gt;for=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;{{ field.auto_id }}&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;control-label&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+        {% if field.field.required %}&lt;span class="nt"&gt;&amp;lt;b&amp;gt;&lt;/span&gt;{% endif %}{{ field.label|safe }}{% if field.field.required %}*&lt;span class="nt"&gt;&amp;lt;/b&amp;gt;&lt;/span&gt;{% endif %}
+    &lt;span class="nt"&gt;&amp;lt;/label&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;controls&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+        {{ field }}
+        {% if field.errors %}
+            &lt;span class="nt"&gt;&amp;lt;span&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;help-inline&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;{% for error in field.errors %}{{ error }}&lt;span class="nt"&gt;&amp;lt;br/&amp;gt;&lt;/span&gt; {% endfor %}&lt;span class="nt"&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
+        {% endif %}
+        {% if field.help_text%}
+            &lt;span class="nt"&gt;&amp;lt;p&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;help-block&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+                {{ field.help_text|safe }}
+            &lt;span class="nt"&gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
+        {% endif %}
+    &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+{% endif %}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This template handles labels, required fields, help text, errors etc. The end result looks something like this:&lt;/p&gt;
+&lt;div class="center-align container"&gt;
+&lt;img alt="" src="../static/uploads/bootstrap_uniform.png" /&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</summary><category term="python"></category><category term="plugin"></category><category term="vim"></category><category term="coding"></category><category term="twitter"></category><category term="bootstrap"></category><category term="uniform"></category></entry><entry><title>New Year's Python Meme 2012</title><link href="http://brainacle.com/new-years-python-meme-2012.html" rel="alternate"></link><updated>2011-12-28T14:01:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-12-28:new-years-python-meme-2012.html</id><summary type="html">&lt;p&gt;Following Tarek Ziade's &lt;a class="reference external" href="http://tarekziade.wordpress.com/2011/12/20/new-years-python-meme-2/"&gt;#2012pythonmeme&lt;/a&gt;:&lt;/p&gt;
+&lt;div class="section" id="whats-the-coolest-python-application-framework-or-library-you-have-discovered-in-2011"&gt;
+&lt;h2&gt;1. What’s the coolest Python application, framework or library you have discovered in 2011?&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;&lt;strong&gt;gunicorn&lt;/strong&gt; - We are on our way to change every apache installation to gunicorn. Proved to be just as good and quite possibly, better.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;haystack&lt;/strong&gt; - I've built quite a few apps that employed solr, and every time I did that, I wrote the solr
+config and client API by hand. I was a bit skeptic about Haystack, but now that I've tried it in production,
+i won't be writing any more solr client APIs any more.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;python opencv&lt;/strong&gt; - Still haven't used it in production, but it's a very cool library.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;div class="section" id="what-new-programming-technique-did-you-learn-in-2011"&gt;
+&lt;h2&gt;2. What new programming technique did you learn in 2011 ?&lt;/h2&gt;
+&lt;p&gt;Meta programming in Python. I worked on a project that relied heavily on meta
+programming. It helped me get more insight in django's models and magic.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="whats-the-name-of-the-open-source-project-you-contributed-the-most-in-2011-what-did-you-do"&gt;
+&lt;h2&gt;3. What’s the name of the open source project you contributed the most in 2011 ? What did you do ?&lt;/h2&gt;
+&lt;p&gt;Around late November and throughout December, I started contributing to &lt;a class="reference external" href="https://github.com/ASKBOT/askbot-devel"&gt;AskBot&lt;/a&gt;.
+&lt;a class="reference external" href="https://github.com/ASKBOT/askbot-devel/commits/master?author=dekomote"&gt;Here is&lt;/a&gt; my contribution so far.
+2011 was a very busy year for me, didn't have much time to contribute. I hope things will change to better next year.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="what-was-the-python-blog-or-website-you-read-the-most-in-2011"&gt;
+&lt;h2&gt;4. What was the Python blog or website you read the most in 2011 ?&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="http://reddit.com/r/python/"&gt;/r/python&lt;/a&gt;. Every important news in the python
+community lands there pretty fast, and the discussions can be both
+entertaining and educational.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="what-are-the-three-top-things-you-want-to-learn-in-2012"&gt;
+&lt;h2&gt;5. What are the three top things you want to learn in 2012 ?&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;1. Qt / PyQT - IMHO Qt is the desktop toolkit that evolves the best of all. It has a great community,
+good documentation and a very rich feature set. It's cross-platform, and even mobile platforms (Android/iOS)
+are starting to support it.&lt;/p&gt;
+&lt;ol class="arabic simple" start="2"&gt;
+&lt;li&gt;C - I slowly started brushing up my C skills during this month, and I want to learn more advanced topics in C next year.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;3. Pypy - Haven't had the time to test this bad boy better. I have played with it couple of times, but I want to
+make a serious effort and see the advantages it brings.&lt;/p&gt;
+&lt;ol class="arabic simple" start="4"&gt;
+&lt;li&gt;If it's not too much already, I want to learn Scheme.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;div class="section" id="what-are-the-top-software-app-or-lib-you-wish-someone-would-write-in-2012"&gt;
+&lt;h2&gt;6. What are the top software, app or lib you wish someone would write in 2012 ?&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;ol class="arabic simple"&gt;
+&lt;li&gt;Python based Redmine... Better python based redmine.&lt;/li&gt;
+&lt;li&gt;Python based reporting software. Something like JasperReports&lt;/li&gt;
+&lt;li&gt;Out of the context, but I wish i can switch to Python3. I wish more libs get ported
+since there are some very good features of py3 i want to exploit.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;div class="section" id="want-to-do-your-own-list-heres-how"&gt;
+&lt;h2&gt;Want to do your own list? Here’s how:&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;Copy-paste the questions and answer to them in your blog&lt;/li&gt;
+&lt;li&gt;Tweet it with the #2012pythonmeme hashtag&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+</summary><category term="linux"></category><category term="coding"></category><category term="python"></category><category term="meme"></category></entry><entry><title>HOW-TO: Use multiple WMD editors on a same page</title><link href="http://brainacle.com/how-to-use-multiple-wmd-editors-on-a-same-page.html" rel="alternate"></link><updated>2011-10-27T15:30:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-10-27:how-to-use-multiple-wmd-editors-on-a-same-page.html</id><summary type="html">&lt;p&gt;&lt;a class="reference external" href="http://code.google.com/p/wmd/"&gt;WMD&lt;/a&gt; editor resembles Stackoverflow's Markdown editor and it's probably one of
+the best WYSIWYG editors that work with Markdown as input. Because of that, it's widely used in
+Stackoverflow clones (i.e. &lt;a class="reference external" href="http://http://www.osqa.net/"&gt;OSQA&lt;/a&gt;). It's easy to install and use (just tie it to a
+textarea), it supports the mostly used features, provided by this type of editors, but has 1 major flaw:
+It doesn't support multiple textareas/multiple editors per page.&lt;/p&gt;
+&lt;p&gt;I've been working on an OSQA based platform recently when I stumbled across this issue. Since we didn't want to change
+the editor completely, I had to improvise.&lt;/p&gt;
+&lt;div class="section" id="javascript-to-the-rescue"&gt;
+&lt;h2&gt;Javascript to the rescue!&lt;/h2&gt;
+&lt;p&gt;Going through WMD's code, I found a way to re-initialize the editor with different textarea. When that goes through, the
+tool bar will be bound to the newly marked textarea and it will edit it's content. The fix is pretty simple actually
+(my example uses jQuery, but i'm sure you will understand what it does):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.wmd-textarea&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;focus&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(){&lt;/span&gt;
+            &lt;span class="c1"&gt;// Execute this when a textarea with a class .wmd-textarea gains focus&lt;/span&gt;
+
+    &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#wmd-button-bar&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;prependTo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;parent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;div&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt; &lt;span class="c1"&gt;// Prepend the toolbox to the parent div of the textarea&lt;/span&gt;
+
+    &lt;span class="nx"&gt;Attacklab&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;panels&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;input&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// Set WMD&amp;#39;s textarea input to this textarea&lt;/span&gt;
+    &lt;span class="nx"&gt;Attacklab&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;editor&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt; &lt;span class="c1"&gt;// Re-init the editor.&lt;/span&gt;
+&lt;span class="p"&gt;});&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;What this block does is hook a function to the &lt;em&gt;focus&lt;/em&gt; event of the textarea. Each time the textarea gains focus, it prepends
+the toolbox to the input's parent element, sets it as the input and reinitializes the WMD editor. That simple.&lt;/p&gt;
+&lt;p&gt;If you don't want the toolbox to move -- i.e. you want a toolbox above each textarea, just paste the toolbox HTML as desired,
+point &lt;em&gt;Attacklab.panels.buttonBar&lt;/em&gt; to the toolbox tied to the textarea with the focus on it, and re-init the editor:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.wmd-textarea&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;focus&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(){&lt;/span&gt;
+            &lt;span class="c1"&gt;// Execute this when a textarea with a class .wmd-textarea gains focus&lt;/span&gt;
+
+    &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#wmd-button-bar&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;prependTo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;parent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;div&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt; &lt;span class="c1"&gt;// Prepend the toolbox to the parent div of the textarea&lt;/span&gt;
+    &lt;span class="nx"&gt;Attacklab&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;panels&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;buttonBar&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;parent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;div&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;find&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.wmd-toolbox&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// Set WMD&amp;#39;s textarea toolbox&lt;/span&gt;
+    &lt;span class="nx"&gt;Attacklab&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;panels&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;input&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// Set WMD&amp;#39;s textarea input to this textarea&lt;/span&gt;
+    &lt;span class="nx"&gt;Attacklab&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;editor&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt; &lt;span class="c1"&gt;// Re-init the editor.&lt;/span&gt;
+&lt;span class="p"&gt;});&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt; The above code blocks would work with this markup:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;&amp;lt;!-- HAVE A WMD EDITOR INITIALIZED SOMEWHERE IN YOUR HTML --&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;div&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;wmd-toolbox&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;&lt;span class="c"&gt;&amp;lt;!-- HERE GOES TOOLBOX HTML - ONLY FOR PRESENTATION - REMOVE ID&amp;#39;S. COPY IT FROM YOUR FULLY RENDERED PAGE SOURCE. --&amp;gt;&lt;/span&gt;&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;textarea&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;.wmd-textarea&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&amp;lt;/textarea&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;div&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;wmd-toolbox&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;&lt;span class="c"&gt;&amp;lt;!-- HERE GOES TOOLBOX HTML - ONLY FOR PRESENTATION - REMOVE ID&amp;#39;S. COPY IT FROM YOUR FULLY RENDERED PAGE SOURCE. --&amp;gt;&lt;/span&gt;&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;textarea&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;.wmd-textarea&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&amp;lt;/textarea&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+</summary><category term="wmd"></category><category term="markdown"></category><category term="javascript"></category><category term="how-to"></category><category term="coding"></category></entry><entry><title>Nautilus-minus extension</title><link href="http://brainacle.com/nautilus-minus-extension.html" rel="alternate"></link><updated>2011-02-14T19:01:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-02-14:nautilus-minus-extension.html</id><summary type="html">&lt;p&gt;&lt;strong&gt;nautilus-min.us&lt;/strong&gt; is an &lt;em&gt;extension&lt;/em&gt; for nautilus that makes uploading images
+and galleries to &lt;a class="reference external" href="http://min.us"&gt;http://min.us&lt;/a&gt; easier for the user. It adds an item in the
+context menu, so when you select one or more images, you click &amp;quot;Upload to min.us&amp;quot;,
+wait for a moment, and your default browser will open on the gallery page.&lt;/p&gt;
+&lt;div class="center-align container"&gt;
+&lt;img alt="" src="/static/uploads/minus-menu.png" /&gt;
+&lt;/div&gt;
+&lt;div class="section" id="installation"&gt;
+&lt;h2&gt;Installation&lt;/h2&gt;
+&lt;div class="section" id="automatic-installation"&gt;
+&lt;h3&gt;Automatic installation&lt;/h3&gt;
+&lt;p&gt;You can install the extension from &lt;a class="reference external" href="https://github.com/dekomote/nautilus-min.us/downloads"&gt;this deb file&lt;/a&gt;.
+It should take care of all dependencies etc. Remember to restart nautilus after installation:&lt;/p&gt;
+&lt;blockquote&gt;
+nautilus -q or
+killall nautilus&lt;/blockquote&gt;
+&lt;p&gt;If this method fails, try manual installation:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="manual-installation"&gt;
+&lt;h3&gt;Manual installation&lt;/h3&gt;
+&lt;p&gt;Get the tarball with the latest source &lt;a class="reference external" href="https://github.com/dekomote/nautilus-min.us/tarball/master"&gt;here&lt;/a&gt;,
+Extract it into $HOME/.nautilus/python-extensions/ . If there isn't such
+directory, create it with your user. Extract the tarball so that the script
+&lt;em&gt;upload_to_minus.py&lt;/em&gt; and the dir &lt;em&gt;minus_utils&lt;/em&gt; are directly in &lt;em&gt;python-extensions/&lt;/em&gt;
+and not subfolders.&lt;/p&gt;
+&lt;p&gt;The extension needs &lt;a class="reference external" href="http://projects.gnome.org/nautilus-python/"&gt;python-nautilus&lt;/a&gt;
+package. On Ubuntus or Debians, install it using apt:&lt;/p&gt;
+&lt;blockquote&gt;
+sudo apt-get install python-nautilus&lt;/blockquote&gt;
+&lt;p&gt;The extension notifies the user via libnotify (pynotify) which is present on Ubuntus
+and some Debians. If that's not there, it falls back to zenity, which is in
+standard gnome installation. Try to get at least one of these packages so you
+can be notified of eventual errors/ updates.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="future"&gt;
+&lt;h2&gt;Future&lt;/h2&gt;
+&lt;p&gt;I would love to hear some comments, critique, feature requests etc. You can fork it,
+request pulls and comment on &lt;a class="reference external" href="https://github.com/dekomote/nautilus-min.us/"&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="linux"></category><category term="coding"></category><category term="python"></category><category term="gnome"></category><category term="nautilus"></category></entry><entry><title>How to write vim plugins with python</title><link href="http://brainacle.com/how-to-write-vim-plugins-with-python.html" rel="alternate"></link><updated>2011-02-03T14:58:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-02-03:how-to-write-vim-plugins-with-python.html</id><summary type="html">&lt;p&gt;I'm not going to dive into how good or extendible Vim is. If you are reading this
+article, you probably know that. The thing that makes Vim so good, is the
+scripting environment behind it called VimL. Using this scripting language,
+you can write any functionality/plugin you need for Vim. Each plugin you use
+is written in this language. Here's the best part. You only need very little
+knowledge of VimL to be able to write plugins, if you know Python (or Ruby).&lt;/p&gt;
+&lt;div class="section" id="what-s-a-vim-plugin-anyway"&gt;
+&lt;h2&gt;What's a vim plugin anyway&lt;/h2&gt;
+&lt;p&gt;A Vim plugin is a .vim script that defines functions, mappings, syntax rules,
+commands that may, or may
+not, manipulate the windows, buffers, lines. It is a complete piece of code with
+some specific functionality. Usually, a plugin consists of several functions
+mappings command definitions and event hooks. When writing vim plugins with Python, often, everything
+outside the functions is written in VimL. But those are vim commands and they
+can be learned fast. In fact, VimL can be learned fast, but using python gives
+so much flexibility. Think about using urllib/httplib/simplejson for accessing
+some web service that helps editing in Vim. This is why most of the plugins that
+work with web services are usually done in VimL+Python.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="any-prerequisites"&gt;
+&lt;h2&gt;Any prerequisites?&lt;/h2&gt;
+&lt;p&gt;You must have vim compiled with +python support. You can check that using the
+command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;vim --version | grep +python
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Vim package in Ubuntu and it's derivatives comes with +python support.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="to-work-vimmit-vim"&gt;
+&lt;h2&gt;To Work - Vimmit.vim&lt;/h2&gt;
+&lt;p&gt;What's better than starting with a simple example? This is a plugin that,
+when called, will retrieve the homepage of &lt;a class="reference external" href="http://reddit.com"&gt;Reddit&lt;/a&gt;
+and will display it in the current buffer.&lt;/p&gt;
+&lt;p&gt;Start by opening &amp;quot;vimmit.vim&amp;quot; file (in vim). Since we are writing python code,
+its good to check if Vim supports Python:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;!&lt;/span&gt;has&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;python&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    echo &lt;span class="s2"&gt;&amp;quot;Error: Required vim compiled with +python&amp;quot;&lt;/span&gt;
+    &lt;span class="k"&gt;finish&lt;/span&gt;
+&lt;span class="k"&gt;endif&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This piece is writen in VimL. It's best if we stick to VimL for things like this,
+mappings and event hooks. This function will check if Vim has python support or
+it will end the script with an error message.&lt;/p&gt;
+&lt;p&gt;We continue with the main function Reddit(). This is where we use Python and do
+the main functionality:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="s"&gt;&amp;quot; Vim comments start with a double quote.&lt;/span&gt;
+&lt;span class="s"&gt;&amp;quot; Function definition is VimL. We can mix VimL and Python in&lt;/span&gt;
+&lt;span class="s"&gt;&amp;quot; function definition.&lt;/span&gt;
+&lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="err"&gt;!&lt;/span&gt; &lt;span class="n"&gt;Reddit&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="s"&gt;&amp;quot; We start the python code like the next line.&lt;/span&gt;
+
+&lt;span class="n"&gt;python&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;EOF&lt;/span&gt;
+&lt;span class="c"&gt;# the vim module contains everything we need to interface with vim from&lt;/span&gt;
+&lt;span class="c"&gt;# python. We need urllib2 for the web service consumer.&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="nn"&gt;urllib2&lt;/span&gt;
+&lt;span class="c"&gt;# we need json for parsing the response&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;json&lt;/span&gt;
+
+&lt;span class="c"&gt;# we define a timeout that we&amp;#39;ll use in the API call. We don&amp;#39;t want&lt;/span&gt;
+&lt;span class="c"&gt;# users to wait much.&lt;/span&gt;
+&lt;span class="n"&gt;TIMEOUT&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;20&lt;/span&gt;
+&lt;span class="n"&gt;URL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;http://reddit.com/.json&amp;quot;&lt;/span&gt;
+
+&lt;span class="k"&gt;try&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="c"&gt;# Get the posts and parse the json response&lt;/span&gt;
+    &lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;urllib2&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;urlopen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;URL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="bp"&gt;None&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;TIMEOUT&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;json_response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;loads&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="n"&gt;posts&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;json_response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;data&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;children&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="c"&gt;# vim.current.buffer is the current buffer. It&amp;#39;s list-like object.&lt;/span&gt;
+    &lt;span class="c"&gt;# each line is an item in the list. We can loop through them delete&lt;/span&gt;
+    &lt;span class="c"&gt;# them, alter them etc.&lt;/span&gt;
+    &lt;span class="c"&gt;# Here we delete all lines in the current buffer&lt;/span&gt;
+    &lt;span class="k"&gt;del&lt;/span&gt; &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;current&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;[:]&lt;/span&gt;
+
+    &lt;span class="c"&gt;# Here we append some lines above. Aesthetics.&lt;/span&gt;
+    &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;current&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;-&amp;quot;&lt;/span&gt;
+
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;posts&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="c"&gt;# In the next few lines, we get the post details&lt;/span&gt;
+        &lt;span class="n"&gt;post_data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;data&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;{})&lt;/span&gt;
+        &lt;span class="n"&gt;up&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;ups&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;down&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;downs&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;title&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;title&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;NO TITLE&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;utf-8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;score&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;score&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;permalink&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;permalink&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;utf-8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;url&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;utf-8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;comments&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;num_comments&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+        &lt;span class="c"&gt;# And here we append line by line to the buffer.&lt;/span&gt;
+        &lt;span class="c"&gt;# First the upvotes&lt;/span&gt;
+        &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;current&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;↑ &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="n"&gt;up&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="c"&gt;# Then the title and the url&lt;/span&gt;
+        &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;current&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;    &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt; [&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt;]&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;,))&lt;/span&gt;
+        &lt;span class="c"&gt;# Then the downvotes and number of comments&lt;/span&gt;
+        &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;current&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;↓ &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt;    | comments: &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt; [&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt;]&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;down&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;comments&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;permalink&lt;/span&gt;&lt;span class="p"&gt;,))&lt;/span&gt;
+        &lt;span class="c"&gt;# And last we append some &amp;quot;-&amp;quot; for visual appeal.&lt;/span&gt;
+        &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;current&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;-&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;except&lt;/span&gt; &lt;span class="ne"&gt;Exception&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;
+
+&lt;span class="n"&gt;EOF&lt;/span&gt;
+&lt;span class="s"&gt;&amp;quot; Here the python code is closed. We can continue writing VimL or python again.&lt;/span&gt;
+&lt;span class="n"&gt;endfunction&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Save the file, source it in vim (:source vimmit.vim) and:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;:call Reddit&lt;span class="o"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now, the way we call the function is not so elegant. So we define a command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;command&lt;span class="p"&gt;!&lt;/span&gt; &lt;span class="p"&gt;-&lt;/span&gt;nargs&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt; Reddit &lt;span class="k"&gt;call&lt;/span&gt; Reddit&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We define the command :Reddit to call the function. After adding this, open a
+new bufer and do :Reddit . Home page will be loaded in the buffer. The -nargs
+argument states how many arguments the command will take.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="function-arguments-eval-and-command"&gt;
+&lt;h2&gt;Function Arguments, Eval and Command&lt;/h2&gt;
+&lt;p&gt;Q: How does one access functional arguments?&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;function&lt;/span&gt;&lt;span class="p"&gt;!&lt;/span&gt; SomeName&lt;span class="p"&gt;(&lt;/span&gt;arg1&lt;span class="p"&gt;,&lt;/span&gt; arg2&lt;span class="p"&gt;,&lt;/span&gt; arg3&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="c"&gt;    &amp;quot; Get the first argument by name in VimL&lt;/span&gt;
+    &lt;span class="k"&gt;let&lt;/span&gt; firstarg&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="k"&gt;a&lt;/span&gt;:arg1
+
+&lt;span class="c"&gt;    &amp;quot; Get the second argument by position in Viml&lt;/span&gt;
+    &lt;span class="k"&gt;let&lt;/span&gt; secondarg&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="k"&gt;a&lt;/span&gt;:&lt;span class="m"&gt;1&lt;/span&gt;
+
+&lt;span class="c"&gt;    &amp;quot; Get the arguments in python&lt;/span&gt;
+
+    python &lt;span class="p"&gt;&amp;lt;&amp;lt;&lt;/span&gt; EOF
+    import &lt;span class="k"&gt;vim&lt;/span&gt;
+
+    first_argument &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;vim&lt;/span&gt;.eval&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;a:arg1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; #or &lt;span class="k"&gt;vim&lt;/span&gt;.eval&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;a:0&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    second_argument &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;vim&lt;/span&gt;.eval&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;a:arg2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; #or &lt;span class="k"&gt;vim&lt;/span&gt;.eval&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;a:1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;You can define a function with arbitrary number of arguments by putting &amp;quot;...&amp;quot;
+instead of argument names. You can access these arguments only by position,
+and you can mix them with named arguments (arg1, arg2, ...)&lt;/p&gt;
+&lt;p&gt;Q: How can I call Vim commands from Python?&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;vim&lt;/span&gt;.command&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;[vim-command-here]&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Q: How to define global variables and access them in VimL and Python?&lt;/p&gt;
+&lt;p&gt;Global vars are prefixed with g:. If you want to define one in your script,
+best thing to do is check if it exists and if doesn't define it and assign some
+default value to it:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;!&lt;/span&gt;exists&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;g:reddit_apicall_timeout&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;let&lt;/span&gt; &lt;span class="k"&gt;g&lt;/span&gt;:reddit_apicall_timeout&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="m"&gt;40&lt;/span&gt;
+&lt;span class="k"&gt;endif&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;You can access it from python using the vim module:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;TIMEOUT&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;eval&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;g:reddit_apicall_timeout&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;If you want to override this setting, you can write:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;let&lt;/span&gt; &lt;span class="k"&gt;g&lt;/span&gt;:reddit_apicall_timeout&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="m"&gt;60&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;in .vimrc .&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="additional-notes"&gt;
+&lt;h2&gt;Additional Notes&lt;/h2&gt;
+&lt;p&gt;VimL is pretty easy once you try it. Remember that print works and
+everything you can do with python, you can do in here. &lt;a class="reference external" href="http://vimdoc.sourceforge.net/htmldoc/if_pyth.html#python-vim"&gt;Here&lt;/a&gt;
+you can find the documentation for the vim python module. Vimdoc is the possibly
+the only resource you will need when writing vim plugins.&lt;/p&gt;
+&lt;p&gt;You can also check this &lt;a class="reference external" href="https://www.ibm.com/developerworks/aix/library/au-vimplugin/"&gt;IBM developerWorks article&lt;/a&gt; .&lt;/p&gt;
+&lt;p&gt;Now, try to extend &amp;quot;vimmit.vim&amp;quot; so the user is able to choose a subreddit (as a
+first functional argument).&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="python"></category><category term="plugin"></category><category term="vim"></category><category term="coding"></category></entry><entry><title>W3cValidate.vim</title><link href="http://brainacle.com/w3cvalidatevim.html" rel="alternate"></link><updated>2011-01-23T00:55:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-01-23:w3cvalidatevim.html</id><summary type="html">&lt;p&gt;W3cValidate.vim is a plugin that enables buffer/url validation using the &lt;a class="reference external" href="http://validator.w3.org"&gt;W3 Validator&lt;/a&gt; API.&lt;/p&gt;
+&lt;div class="section" id="usage"&gt;
+&lt;h2&gt;Usage&lt;/h2&gt;
+&lt;p&gt;Copy w3cvalidate.vim file inside plugin directory, source it or restart Vim. Use&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;:W3cValidate to validate the current buffer&lt;/p&gt;
+&lt;p&gt;:W3cValidate &amp;quot;[url_here]&amp;quot; to validate a hosted page&lt;/p&gt;
+&lt;p&gt;:W3cValidateDT &amp;quot;[doctype]&amp;quot; to validate the buffer using the [doctype] override. Make sure the doctype is a valid doctype&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The validator service url can be changed if you run an instance of it localy by setting  g:w3_validator_url  in .vimrc&lt;/p&gt;
+&lt;p&gt;The script has API timeout default to 20 seconds. You can change it by setting  g:w3_apicall_timeout  in .vimrc&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="source"&gt;
+&lt;h2&gt;Source&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="https://bitbucket.org/dekomote/w3cvalidate.vim"&gt;Bitbucket&lt;/a&gt;
+&lt;a class="reference external" href="https://github.com/dekomote/w3cvalidate.vim"&gt;GitHub&lt;/a&gt;
+&lt;a class="reference external" href="http://www.vim.org/scripts/script.php?script_id=3416"&gt;Vim Scripts&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="vim"></category><category term="plugin"></category><category term="coding"></category></entry><entry><title>Generate960.py</title><link href="http://brainacle.com/generate960py.html" rel="alternate"></link><updated>2011-01-15T12:06:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2011-01-15:generate960py.html</id><summary type="html">&lt;p&gt;Command line utility script for generating custom &lt;a class="reference external" href="http://960.gs"&gt;960gs&lt;/a&gt; grids (css). It can generate grids will custom width, column number and gutter width. Outputs to file or stdout.&lt;/p&gt;
+&lt;div class="section" id="usage"&gt;
+&lt;h2&gt;Usage&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;python generate960.py
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="optional-arguments"&gt;
+&lt;h2&gt;Optional Arguments&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;table class="docutils option-list" frame="void" rules="none"&gt;
+&lt;col class="option" /&gt;
+&lt;col class="description" /&gt;
+&lt;tbody valign="top"&gt;
+&lt;tr&gt;&lt;td class="option-group"&gt;
+&lt;kbd&gt;&lt;span class="option"&gt;-h&lt;/span&gt;, &lt;span class="option"&gt;--help&lt;/span&gt;&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;show help message and exit&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td class="option-group" colspan="2"&gt;
+&lt;kbd&gt;&lt;span class="option"&gt;-w &lt;var&gt;WIDTH&lt;/var&gt;&lt;/span&gt;, &lt;span class="option"&gt;--width &lt;var&gt;WIDTH&lt;/var&gt;&lt;/span&gt;&lt;/kbd&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;td&gt;Content width in px. Defaults to 960px.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td class="option-group" colspan="2"&gt;
+&lt;kbd&gt;&lt;span class="option"&gt;-c &lt;var&gt;COLUMNS&lt;/var&gt;&lt;/span&gt;, &lt;span class="option"&gt;--columns &lt;var&gt;COLUMNS&lt;/var&gt;&lt;/span&gt;&lt;/kbd&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;td&gt;Number of columns. Defaults to 12.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td class="option-group" colspan="2"&gt;
+&lt;kbd&gt;&lt;span class="option"&gt;-g &lt;var&gt;GUTTER&lt;/var&gt;&lt;/span&gt;, &lt;span class="option"&gt;--gutter &lt;var&gt;GUTTER&lt;/var&gt;&lt;/span&gt;&lt;/kbd&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;td&gt;Gutter width in px. Defaults to 20px.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td class="option-group" colspan="2"&gt;
+&lt;kbd&gt;&lt;span class="option"&gt;-f &lt;var&gt;FILE&lt;/var&gt;&lt;/span&gt;, &lt;span class="option"&gt;--file &lt;var&gt;FILE&lt;/var&gt;&lt;/span&gt;&lt;/kbd&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;td&gt;Name of the file to be saved. If this is not specified the css will be printed to stdout&lt;/td&gt;&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;To generate 1024 grid with 15px gutters and 10 columns:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;python generate960.py -w 1024 -c 10 -g 15
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="requirements"&gt;
+&lt;h2&gt;Requirements&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="http://jinja.pocoo.org/"&gt;Jinja2&lt;/a&gt; and &lt;a class="reference external" href="http://code.google.com/p/argparse/"&gt;Argparse&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="source"&gt;
+&lt;h2&gt;Source&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="https://bitbucket.org/dekomote/generate960.py"&gt;Bitbucket&lt;/a&gt;
+&lt;a class="reference external" href="https://github.com/dekomote/generate960.py"&gt;GitHub&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="python"></category><category term="960gs"></category><category term="grids"></category><category term="design"></category></entry><entry><title>PyFaceDetect</title><link href="http://brainacle.com/pyfacedetect.html" rel="alternate"></link><updated>2010-12-28T18:00:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2010-12-28:pyfacedetect.html</id><summary type="html">&lt;p&gt;PyFaceDetect is a thin wrapper around &lt;a class="reference external" href="http://opencv.willowgarage.com"&gt;OpenCV&lt;/a&gt; for detection and marking faces in images.&lt;/p&gt;
+&lt;p&gt;The module can be used as an API or in console for testing purposes. For usage and options:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;python pyfacedetect.py -h
+&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="section" id="sample-input"&gt;
+&lt;h2&gt;Sample input&lt;/h2&gt;
+&lt;img alt="" src="http://i.imgur.com/5Lq4O.jpg" /&gt;
+&lt;/div&gt;
+&lt;div class="section" id="sample-output"&gt;
+&lt;h2&gt;Sample output&lt;/h2&gt;
+&lt;img alt="" src="http://i.imgur.com/56aTg.jpg" /&gt;
+&lt;p&gt;The module consists of 2 classes:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;OcvDetector that wraps OpenCV Api for face detection and can be used bare
+without the helper methods for loading images, marking faces, or getting
+human friendly output&lt;/p&gt;
+&lt;p&gt;FaceDetect - full feature class that extends OcvDetector and adds helper
+methods for loading/marking/outputing/saving images and dumping faces in
+json.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;You can enable scaning for profiles for quantity of faces by setting
+SCAN_FOR_PROFILES to True. That, however will give some overlapping rectangles.&lt;/p&gt;
+&lt;p&gt;Try and tweak MIN_FACE_SIZE, HAAR_SCALE and MIN_NEIGHBORS so you can change the
+accuracy of the detection. For more info, read
+&lt;a class="reference external" href="http://opencv.willowgarage.com/documentation/python/objdetect_cascade_classification.html"&gt;http://opencv.willowgarage.com/documentation/python/objdetect_cascade_classification.html&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;For speed, all images above 1000width or 1000h are scaled to 1000w or 1000h max.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="api-usage"&gt;
+&lt;h2&gt;API Usage&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;face_detect&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;new&lt;/span&gt; &lt;span class="n"&gt;FaceDetect&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;image_from_file&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;file_name&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c"&gt;#load from file&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;image_from_input&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;input_id&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c"&gt;#load 1 frame from video input&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;detect_faces&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="c"&gt;#stores faces in local list&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;overlay_image&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;rgb_border&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;width&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="c"&gt;#overlays original image with rectangles around detected faces.&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to_json&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="c"&gt;#returns json string with faces rectangles&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;output_image&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="c"&gt;#shows image in window&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;save_image&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;file_name&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c"&gt;#saves overlaid image to file_name&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="dependencies"&gt;
+&lt;h2&gt;Dependencies&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="http://opencv.willowgarage.com/wiki/"&gt;OpenCV 2.1+&lt;/a&gt; and Argparse&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="source"&gt;
+&lt;h2&gt;Source&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="https://bitbucket.org/dekomote/pyfacedetect"&gt;Bitbucket&lt;/a&gt;
+&lt;a class="reference external" href="https://github.com/dekomote/pyfacedetect"&gt;GitHub&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="python"></category><category term="opencv"></category><category term="face-detection"></category></entry><entry><title>Calculating image entropy with Python, How and Why?</title><link href="http://brainacle.com/calculating-image-entropy-with-python-how-and-why.html" rel="alternate"></link><updated>2010-10-04T12:20:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2010-10-04:calculating-image-entropy-with-python-how-and-why.html</id><summary type="html">&lt;div class="section" id="the-why"&gt;
+&lt;h2&gt;The Why?&lt;/h2&gt;
+&lt;p&gt;Lets say you are developing a video portal, kinda like youtube/vimeo
+and you want to have an automated way of making thumbnails. Since
+video manipulation in python is a bit tricky, you might as well make
+the thumbnails with &lt;strong&gt;ffmpeg&lt;/strong&gt; every [n] seconds. You need 10 thumbnails
+for each video, and you want those thumbnails to show parts of it.&lt;/p&gt;
+&lt;p&gt;If you leave it random, you might end up having thumbnails that show
+a black scene or some scene that barely shows anything. Using the
+image
+entropy, you can sort out the thumbnails based on the &lt;a class="reference external" href="http://www.astro.cornell.edu/research/projects/compression/entropy.html"&gt;&amp;quot;business&amp;quot;&lt;/a&gt; of
+the scene they depict. The technique can be implemented as follows:&lt;/p&gt;
+&lt;ol class="arabic simple"&gt;
+&lt;li&gt;Generate n&amp;gt;[thumbnails_needed] thumbnails&lt;/li&gt;
+&lt;li&gt;Calculate the image entropy for each of them&lt;/li&gt;
+&lt;li&gt;Sort them by their entropy&lt;/li&gt;
+&lt;li&gt;Use the first [thumbnails_needed] thumbnails&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-how"&gt;
+&lt;h2&gt;The How?&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Entropy&lt;/strong&gt; H of a sampled signal of length N samples is calculated:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;H(X) = -1 * sum_1_to_N ( p_i log( p_i ) )
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;p_i is the probability of the i-th sample of the signal and can be calculated:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;p_i = Histogram(sample)[i]/Length(Histogram(sample))
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;All we need to do is to get the histogram list and we can calculate
+the entropy.&lt;/p&gt;
+&lt;p&gt;On a first sight, this sounds like a complex mathematical problem. And
+it is, but we will make a little shortcut. We will use the &lt;a class="reference external" href="http://www.pythonware.com/products/pil/"&gt;Python
+imaging library&lt;/a&gt; or &lt;strong&gt;PIL&lt;/strong&gt;. This package is de facto standard package for
+image manipulation in Python. It is one of the first packages I
+install when preparing my development environment (before making
+virtualenvs). PIL provides a method for calculating the histogram of
+the image and solves most of our problems. The function for
+calculating the entropy looks like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;Image&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;math&lt;/span&gt;
+
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;image_entropy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;img&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot;calculate the entropy of an image&amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;histogram&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;img&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;histogram&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;histogram_length&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;sum&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;histogram&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="n"&gt;samples_probability&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;float&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;histogram_length&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;h&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;histogram&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;sum&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;math&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;log&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;samples_probability&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+
+&lt;span class="n"&gt;img&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Image&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;headshot.jpg&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;image_entropy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;img&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;As you can see, PIL’s method for calculating the histogram really
+simplifies things and makes the functions seem slim and simple. All
+its left is iterating through set of thumbnails, calculating the
+entropy and sorting them.&lt;/p&gt;
+&lt;p&gt;Remember: &lt;strong&gt;Bigger entropy means more
+noise/liveliness/color/business.*&lt;/strong&gt; You will usually need the thumbnails
+with greater entropy.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="development"></category><category term="entropy"></category><category term="image"></category><category term="pil"></category><category term="python"></category></entry><entry><title>Django Toolbox for Komodo</title><link href="http://brainacle.com/django-toolbox-for-komodo.html" rel="alternate"></link><updated>2010-05-03T16:08:00Z</updated><author><name>Vasil Vangelovski</name></author><id>tag:brainacle.com,2010-05-03:django-toolbox-for-komodo.html</id><summary type="html">&lt;p&gt;If you’re using TextMate for Django development you’ve probably came
+across the &lt;a class="reference external" href="http://svn.textmate.org/trunk/Bundles/Python%20Django.tmbundle/"&gt;Python Django&lt;/a&gt;
+and Python &lt;a class="reference external" href="http://svn.textmate.org/trunk/Bundles/Python%20Django.tmbundle/"&gt;Django Template&lt;/a&gt; bundles.&lt;/p&gt;
+&lt;p&gt;The Django Toolbox for Komodo does most of what the TextMate bundles
+do, plus integrated shortcuts for the most important links in the
+Django docs. Builtin template filter support is still a work in
+progress.&lt;/p&gt;
+&lt;p&gt;To get the most out of the toolbox, first install the &lt;a class="reference external" href="http://community.activestate.com/xpi/tab-abbreviations"&gt;Tab
+Abbreviations&lt;/a&gt;
+add-on and set a keyboard shortcut (eg. TAB) to the
+command “Insert Abbreviation Snippet By Name”.&lt;/p&gt;
+&lt;p&gt;Download link: &lt;a class="reference external" href="/static/downloads/DjangoKomodoToolbox-0.1.kpz"&gt;DjangoKomodoToolbox-0.1.kpz&lt;/a&gt;&lt;/p&gt;
+</summary><category term="development"></category><category term="editors"></category><category term="komodo"></category><category term="django"></category></entry><entry><title>JqCarousel Three-D</title><link href="http://brainacle.com/jqcarousel-three-d.html" rel="alternate"></link><updated>2010-01-27T19:59:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2010-01-27:jqcarousel-three-d.html</id><summary type="html">&lt;p&gt;This plugin was coded to prove a point. We saw another similar plugin like this,
+but it was only for sale with obfuscated code, so I decided to write it and opensource it.
+It doesn't have the limited functionality and the custom implementation of the paid ones,
+it is easy to implement and highly customizable. Works with images and other HTML containers.&lt;/p&gt;
+&lt;p&gt;&lt;a class="reference external" href="/static/uploads/jqcarousel3d/index.html"&gt;Here&lt;/a&gt; you can check out a demo of
+the carousel. The JS embed code is:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;#carouselthreed&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;carousel3D&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt;
+    &lt;span class="nx"&gt;speed&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;900&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nx"&gt;perspectiveZoom&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;70&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nx"&gt;sideOffset&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nx"&gt;topOffset&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nx"&gt;secondaryOpacity&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;35&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nx"&gt;emClass&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;tdc-element&amp;#39;&lt;/span&gt;
+&lt;span class="p"&gt;})&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And here is the HTML:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;id=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;carouselthreed&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;img&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;tdc-element&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;src=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;fly.jpg&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;img&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;tdc-element&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;src=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;gates.jpg&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;img&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;tdc-element&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;src=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;penguins.jpg&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The settings object attributes are:
+- speed - Speed of animation in milliseconds (default 350)
+- perspectiveZoom - Percentage of secondary element's sizes relative to primary element (default 80)
+- sideOffset - Offset of secondary elements (default 70)
+- topOffset - Offset from top of secondary elements (default 0)
+- secondaryOpacity - Opacity of secondary elements (default 0.8)
+- emClass - CSS class of elements that will rotate (images/dom) (default &amp;quot;tdc-element&amp;quot;)&lt;/p&gt;
+&lt;p&gt;Any of those attributes can be omitted and default values will be used.
+For reference, the second element in the container is taken, it is the
+central element and all other elements are resized relative to it.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;It works with unlimited number of elements.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a class="reference external" href="/static/uploads/jqcarousel3d/Carousel3D3.js"&gt;Download&lt;/a&gt; the plugin and get a
+fresh copy of &lt;a class="reference external" href="http://jquery.com/"&gt;JQuery&lt;/a&gt; and you're set.&lt;/p&gt;
+&lt;p&gt;Enjoy&lt;/p&gt;
+</summary><category term="javascript"></category><category term="jquery"></category><category term="plugin"></category><category term="ui"></category></entry><entry><title>Announcing Django-audit-log</title><link href="http://brainacle.com/announcing-django-audit-log.html" rel="alternate"></link><updated>2009-12-22T21:39:00Z</updated><author><name>Vasil Vangelovski</name></author><id>tag:brainacle.com,2009-12-22:announcing-django-audit-log.html</id><summary type="html">&lt;p&gt;For those unfamiliar with the term, a definition from Wikipedia:&lt;/p&gt;
+&lt;blockquote&gt;
+Audit trail or audit log is a chronological sequence of audit records, each
+of which contains evidence directly pertaining to and resulting from the
+execution of a business process or system function.&lt;/blockquote&gt;
+&lt;p&gt;How does this come into play in a web application?&lt;/p&gt;
+&lt;p&gt;Lets examine the case of a simple application for keeping track of a store's
+inventory:&lt;/p&gt;
+&lt;p&gt;In the most simple case there would be a single database table in which
+we'd keep details on different products in the store. In the case where
+multiple users would have access to INSERT/UPDATE/DELETE records in the
+products table, one user could insert a product with name, description
+and price, later another user could change the description or even delete
+the whole record. If at some later point we wanted to restore the original
+record or see who made the latest changes we'd have to ask all the users to
+remember what they did. An audit log for this table would provide the means
+of keeping track of all the changes that were made to it and who made the
+changes in a chronological order.&lt;/p&gt;
+&lt;p&gt;&lt;a class="reference external" href="https://code.google.com/p/django-audit-log/"&gt;django-audit-log&lt;/a&gt; provides such
+facilities for your Django models. It's designed to be very simple to add
+chronological tracking to any django model with the least amount of changes
+to your existing code. Adding an audit log for your models is done in
+three steps:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;Add a middleware class in settings.py.&lt;/li&gt;
+&lt;li&gt;Add a manager property to every model you need to keep track of.&lt;/li&gt;
+&lt;li&gt;Execute the syncdb management command.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To keep track of all the changes a separate table will be created for
+each tracked model. This table would have the same column structure as
+the original model plus columns for tracking the time, type of action
+(create, change or delete) and user who did the action. Queries on the
+audit log for a model are made via the manager added in step 2.&lt;/p&gt;
+&lt;p&gt;The project is still under heavy development and there's no
+official release yet. Keep that in mind if you consider using it in
+production. The code can be downloaded from the mercurial repository:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;hg clone https://django-audit-log.googlecode.com/hg/ django-audit-log
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Basic usage instructions can be found on
+&lt;a class="reference external" href="https://code.google.com/p/django-audit-log/wiki/UsageInstructions"&gt;this wiki page&lt;/a&gt; .
+&lt;strong&gt;Feature requests are always welcome.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Details on how it works and extension points will be coming up on
+the project wiki page soon.&lt;/p&gt;
+</summary><category term="django"></category><category term="python"></category><category term="audit-log"></category></entry><entry><title>Livescape jQuery Live Landscape</title><link href="http://brainacle.com/livescape-jquery-live-landscape.html" rel="alternate"></link><updated>2009-12-15T19:56:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2009-12-15:livescape-jquery-live-landscape.html</id><summary type="html">&lt;p&gt;The idea behind this plugin is to have some kind of landscape container that
+will contain objects moving inside of it e.g. sky with the clouds moving.
+The plugin is built simple, has simple implementation, it is very easy to
+use, yet very flexible. You only need the landscape image, the object images
+and one container.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;#livescape&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;livescape&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt;
+    &lt;span class="c1"&gt;//height of the landscape (can be omitted)&lt;/span&gt;
+    &lt;span class="nx"&gt;height&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;360px&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="c1"&gt;//width of the landscape (can be omitted)&lt;/span&gt;
+    &lt;span class="nx"&gt;width&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;1000px&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="c1"&gt;//background image (can be omitted)&lt;/span&gt;
+    &lt;span class="nx"&gt;background_image&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;img/bg.jpg&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Next define the objects that are moving:&lt;/span&gt;
+    &lt;span class="nx"&gt;objects&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+        &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="c1"&gt;//the positions are relative to the landscape&lt;/span&gt;
+            &lt;span class="c1"&gt;//if omitted, random assumed - same for duration&lt;/span&gt;
+
+            &lt;span class="c1"&gt;//x of start position&lt;/span&gt;
+            &lt;span class="nx"&gt;start_x&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;1700px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;//y of start position&lt;/span&gt;
+            &lt;span class="nx"&gt;start_y&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;190px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;//x of end position&lt;/span&gt;
+            &lt;span class="nx"&gt;end_x&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;-4000px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="c1"&gt;//y of end position&lt;/span&gt;
+            &lt;span class="nx"&gt;end_y&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;190px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;//image of the object (url)&lt;/span&gt;
+            &lt;span class="nx"&gt;image&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;img/car.png&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;// duration of the animation&lt;/span&gt;
+            &lt;span class="nx"&gt;duration&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;18000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;// the animation loops&lt;/span&gt;
+            &lt;span class="nx"&gt;loop&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;//the object is anchor&lt;/span&gt;
+            &lt;span class="nx"&gt;href&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;ThisisBatCountry.png&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;//pause in between loops in ms&lt;/span&gt;
+            &lt;span class="nx"&gt;pause&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;//the objects fade in on start and out on end&lt;/span&gt;
+            &lt;span class="nx"&gt;fade&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;
+        &lt;span class="p"&gt;},&lt;/span&gt;
+        &lt;span class="c1"&gt;//another object&lt;/span&gt;
+        &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="nx"&gt;start_x&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;-250px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;start_y&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;5px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;end_x&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;1250px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;end_y&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;5px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;duration&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;49000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;image&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;img/cloud1.png&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;loop&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;fade&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="p"&gt;})&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This is setup is for 2 objects. The implementation is pretty intuitive and i
+think you will get a hold of it very fast.&lt;/p&gt;
+&lt;div class="section" id="update"&gt;
+&lt;h2&gt;Update&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p class="first"&gt;The objects now turn towards the direction of movement using CSS3 rotation.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;dl class="first docutils"&gt;
+&lt;dt&gt;For every object you can define a random starting and ending range using the attrubutes:&lt;/dt&gt;
+&lt;dd&gt;&lt;ul class="first simple"&gt;
+&lt;li&gt;range_sx_min (start_x min range)&lt;/li&gt;
+&lt;li&gt;range_sx_max (start_x max range)&lt;/li&gt;
+&lt;li&gt;range_ex_min&lt;/li&gt;
+&lt;li&gt;range_ex_max&lt;/li&gt;
+&lt;li&gt;range_sy_min&lt;/li&gt;
+&lt;li&gt;range_sy_max&lt;/li&gt;
+&lt;li&gt;range_ey_min&lt;/li&gt;
+&lt;li&gt;range_ey_max&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p class="last"&gt;all these attributes can be omitted and random will be used.&lt;/p&gt;
+&lt;/dd&gt;
+&lt;/dl&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;The plugin is still beta and needs refactoring.&lt;/strong&gt; Nevertheless you will
+have access to an early access version.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="source-and-example"&gt;
+&lt;h2&gt;Source and example&lt;/h2&gt;
+&lt;p&gt;You can check this plugin in action &lt;a class="reference external" href="/static/uploads/livescape/index.html"&gt;here&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Get the &lt;a class="reference external" href="/static/uploads/livescape/jqLiveScape.js"&gt;source&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="javascript"></category><category term="jquery"></category><category term="plugin"></category><category term="code"></category><category term="ui"></category></entry></feed>

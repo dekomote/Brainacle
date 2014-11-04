@@ -1,0 +1,1541 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Brainacle</title><link>http://brainacle.com/</link><description></description><atom:link href="http://brainacle.com/feeds/dejan-noveski.rss.xml" rel="self"></atom:link><lastBuildDate>Tue, 04 Nov 2014 16:07:00 -0000</lastBuildDate><item><title>The Most Underrated Raspberry Pi feature</title><link>http://brainacle.com/the-most-underrated-raspberry-pi-feature.html</link><description>&lt;p&gt;I absolutely love my Raspberry Pi. It's awesome and there's no point for me to start writing why is that.&lt;/p&gt;
+&lt;p&gt;There is one feature tho, that's been very underrated, yet it's one of the best selling points
+of the RPi:&lt;/p&gt;
+&lt;div class="section" id="hdmi-cec"&gt;
+&lt;h2&gt;HDMI-CEC&lt;/h2&gt;
+&lt;p&gt;&amp;quot;HDMI-CEC (Consumer Electronics Control) is an HDMI feature designed to allow the user to command and control
+up-to 15 CEC-enabled devices, that are connected through HDMI, by using only one of their remote controls
+(for example by controlling a television set, set-top box, and DVD player using only the remote control of the TV).
+CEC also allows for individual CEC-enabled devices to command and control each other without user intervention.&amp;quot; (&lt;a class="reference external" href="http://en.wikipedia.org/wiki/HDMI#CEC/"&gt;From Wikipedia&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;What this means is, you can control your RPi with the TV's remote! And the best part is, &lt;strong&gt;it works out of the box&lt;/strong&gt; with your favorite xbmc flavor!
+I've had my RPi as a media center since they started shipping them and I've yet to put a keyboard or a mouse on it. If you have a TV with support for CEC, you're in luck.&lt;/p&gt;
+&lt;p&gt;As I understand, Banana Pi and the likes have the hardware, but the linux cec driver doesn't work for them so they are trying to get that sorted out.
+Until then, RPi is the way to go if you plan on making a media center.&lt;/p&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Tue, 04 Nov 2014 16:07:00 -0000</pubDate><guid>tag:brainacle.com,2014-11-04:the-most-underrated-raspberry-pi-feature.html</guid><category>linux</category><category>raspberry-pi</category><category>hdmi</category><category>cec</category></item><item><title>UPDATED: Multiseating with KDE and XBMC</title><link>http://brainacle.com/updated-multiseating-with-kde-and-xbmc.html</link><description>&lt;p&gt;A while ago, I wrote a how-to concerning a multiseat setup with xbmc and KDE. Since then, I've done a lot of tweaks to
+the system, optimized the configurations, made them more modular and DE independent. Also, UDEV RULES!&lt;/p&gt;
+&lt;p&gt;Make sure to read the old article &lt;a class="reference external" href="http://brainacle.com/multiseating-with-kde-and-xbmc-like-a-boss.html"&gt;here&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;You can skip the part with the configurations, but if you have time, see how the old system was and how it is now.&lt;/p&gt;
+&lt;p&gt;Again, It's best if I cover my behind so:&lt;/p&gt;
+&lt;div class="section" id="backup-all-the-files-you-ll-be-changing-before-you-start-changing-them-i-don-t-take-any-responsibility-for-any-damage-you-might-cause"&gt;
+&lt;h2&gt;&lt;strong&gt;Backup all the files you'll be changing before you start changing them. I don't take any responsibility for any damage you might cause.&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Lets start configuring!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configuration"&gt;
+&lt;h2&gt;Configuration&lt;/h2&gt;
+&lt;p&gt;Before you start, make sure you have a fresh distro. 3.2+ kernel, xorg 1.10+, evdev drivers for mouse and keyboard.&lt;/p&gt;
+&lt;div class="section" id="finding-out-busid-of-the-gpus"&gt;
+&lt;h3&gt;Finding out BusId of the GPUs&lt;/h3&gt;
+&lt;p&gt;We use BusId of the GPU to configure the &amp;quot;Device&amp;quot; parts in xorg.conf. The BusID is a string that looks like &amp;quot;PCI:1:0:0&amp;quot;.
+To find out the right BusID, use &lt;strong&gt;lspci | egrep &amp;quot;VGA|Display&amp;quot;&lt;/strong&gt;. The output should look something like this:&lt;/p&gt;
+&lt;blockquote&gt;
+00:02.0 Display controller: Intel Corporation 2nd Generation Core Processor Family Integrated Graphics Controller (rev 09)
+01:00.0 VGA compatible controller: Advanced Micro Devices [AMD] nee ATI Juniper XT [AMD Radeon HD 6000 Series]&lt;/blockquote&gt;
+&lt;p&gt;The output is pretty much straightforward. You can see which Bus is which GPU. So, based on this, your BusIDs would be
+&lt;strong&gt;PCI:0:2:0&lt;/strong&gt; and &lt;strong&gt;PCI:1:0:0&lt;/strong&gt;. Save those strings somewhere, you'll need them later.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configuring-udev"&gt;
+&lt;h3&gt;Configuring Udev&lt;/h3&gt;
+&lt;p&gt;Here's the fun part :). We write udev rules to &lt;strong&gt;tag&lt;/strong&gt; the inputs, so we can assign them to specific seats.&lt;/p&gt;
+&lt;p&gt;First, we have to distinguish the different inputs for the seats by some identifier. If your input are different models and/or vendors
+it's very easy. If not, comment me, and if there's enough comments, I'll try to write up a good Udev tutorial on how to find
+sys paths, query by advanced parameters etc.&lt;/p&gt;
+&lt;p&gt;So now, open a terminal and write 'lsusb'. The output should look like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;Bus 001 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
+Bus 003 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 001 Device 003: ID 046d:c50e Logitech, Inc. Cordless Mouse Receiver
+Bus 003 Device 003: ID 1058:1021 Western Digital Technologies, Inc. Elements 2TB
+Bus 003 Device 004: ID 046d:c318 Logitech, Inc. Illuminated Keyboard
+Bus 003 Device 005: ID 1532:0016 Razer USA, Ltd DeathAdder Mouse
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Notice the ID. Its meaning is VENDOR_ID:PRODUCT_ID. My inputs are 046d:c50e, 046d:c318 and 1532:0016.&lt;/p&gt;
+&lt;p&gt;Save your IDs.&lt;/p&gt;
+&lt;p&gt;Next, go to /etc/udev/rules.d and create a script called &lt;em&gt;99-multiseat.rules&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Next few lines should go in it:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;SUBSYSTEM&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;input&amp;quot;&lt;/span&gt;, ENV&lt;span class="o"&gt;{&lt;/span&gt;ID_INPUT.tags&lt;span class="o"&gt;}=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;input_default&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;SUBSYSTEM&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;input&amp;quot;&lt;/span&gt;, ENV&lt;span class="o"&gt;{&lt;/span&gt;ID_VENDOR_ID&lt;span class="o"&gt;}==&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;046d&amp;quot;&lt;/span&gt;, ENV&lt;span class="o"&gt;{&lt;/span&gt;ID_MODEL_ID&lt;span class="o"&gt;}==&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;c50e&amp;quot;&lt;/span&gt;, ENV&lt;span class="o"&gt;{&lt;/span&gt;ID_INPUT.tags&lt;span class="o"&gt;}=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;input_right&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The first line tags all inputs with tag &amp;quot;input_default&amp;quot;. The second line tags the specific input with Vendor ID 046d and model ID c50e with the tag &amp;quot;input right&amp;quot;.
+Change the values to your vendor and model ID.&lt;/p&gt;
+&lt;p&gt;Save the script, mark it +x and reboot.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configuring-x"&gt;
+&lt;h3&gt;Configuring X&lt;/h3&gt;
+&lt;p&gt;Last how-to used one xorg.conf. Now, we'll use main seat and off-seat configuration files for xorg.conf.&lt;/p&gt;
+&lt;p&gt;Open /etc/X11/xorg.conf for editing, as root user. If you don't have that file, just create it. &lt;strong&gt;Note:&lt;/strong&gt;
+Different distros might have different xorg.conf path. Most of the distros use /etc/X11/.&lt;/p&gt;
+&lt;p&gt;We'll use a simple, barebone xorg configuration, and let X autoconfigure everything else:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;Section &lt;span class="s2"&gt;&amp;quot;ServerFlags&amp;quot;&lt;/span&gt;
+    &lt;span class="c"&gt;# Xorg will otherwise not start if it can&amp;#39;t find a mouse to use. Better safe than sorry.&lt;/span&gt;
+    Option  &lt;span class="s2"&gt;&amp;quot;AllowMouseOpenFail&amp;quot;&lt;/span&gt;    &lt;span class="s2"&gt;&amp;quot;true&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt;
+    Identifier &lt;span class="s2"&gt;&amp;quot;gfx_left&amp;quot;&lt;/span&gt;
+    Driver &lt;span class="s2"&gt;&amp;quot;radeon&amp;quot;&lt;/span&gt;
+    BusID       &lt;span class="s2"&gt;&amp;quot;PCI:1:0:0&amp;quot;&lt;/span&gt;
+    EndSection
+
+    Section &lt;span class="s2"&gt;&amp;quot;InputClass&amp;quot;&lt;/span&gt;
+    Identifier &lt;span class="s2"&gt;&amp;quot;ignore_other_seats&amp;quot;&lt;/span&gt;
+    MatchTag &lt;span class="s2"&gt;&amp;quot;input_right&amp;quot;&lt;/span&gt;
+    Option &lt;span class="s2"&gt;&amp;quot;Ignore&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;yes&amp;quot;&lt;/span&gt;
+EndSection
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;That's ALL!&lt;/strong&gt; By using MatchTag, we match the inputs tagged as &amp;quot;input_right&amp;quot; and we &amp;quot;Ignore&amp;quot; them.
+Note the BussID in the &amp;quot;Device&amp;quot; section. It should match your primary GPU.&lt;/p&gt;
+&lt;p&gt;Save the script. This should work independently of the next configuration file.&lt;/p&gt;
+&lt;p&gt;Open /etc/X11/xorg-xbmc.conf for editing, as root user.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;Section &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt;
+    Identifier &lt;span class="s2"&gt;&amp;quot;gfx_right&amp;quot;&lt;/span&gt;
+    Driver &lt;span class="s2"&gt;&amp;quot;intel&amp;quot;&lt;/span&gt;
+    BusID       &lt;span class="s2"&gt;&amp;quot;PCI:0:2:0&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;InputClass&amp;quot;&lt;/span&gt;
+    Identifier &lt;span class="s2"&gt;&amp;quot;ignore_other_seats&amp;quot;&lt;/span&gt;
+    Option &lt;span class="s2"&gt;&amp;quot;Ignore&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;yes&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;InputClass&amp;quot;&lt;/span&gt;
+    Identifier &lt;span class="s2"&gt;&amp;quot;input_right&amp;quot;&lt;/span&gt;
+    MatchTag &lt;span class="s2"&gt;&amp;quot;input_right&amp;quot;&lt;/span&gt;
+    Option &lt;span class="s2"&gt;&amp;quot;Ignore&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;no&amp;quot;&lt;/span&gt;
+EndSection
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This config will be used by the off-seat xserver. We point to the graphic card, we tell it to ignore all the inputs except
+those tagged as &amp;quot;input_right&amp;quot; and we're set here.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="testing-the-configuration"&gt;
+&lt;h3&gt;Testing the configuration&lt;/h3&gt;
+&lt;p&gt;First, let the main xserver load the xorg.conf. Switch to runlevel 3 and then 5 again (telinit [runlevel]).&lt;/p&gt;
+&lt;p&gt;When the main seat is up, open up a terminal, and execute this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;/bin/su -- - &lt;span class="o"&gt;[&lt;/span&gt;your off-seat user&lt;span class="o"&gt;]&lt;/span&gt; -c &lt;span class="s2"&gt;&amp;quot;xinit -- /usr/bin/X :2 vt9 -nolisten tcp -config xorg-xbmc.conf -sharevts -novtswitch&amp;quot;&lt;/span&gt; &amp;lt;/dev/tty9 &amp;gt;/dev/tty9 2&amp;gt;/dev/tty9
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;It should get the server up.&lt;/p&gt;
+&lt;p&gt;If you want to daemonize this, open up a init script (either /etc/init.d/xorg-offseat or /etc/rc.d/xorg-offseat depending on distro) and inser the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/bin/sh&lt;/span&gt;
+
+&lt;span class="nb"&gt;set&lt;/span&gt; -e
+
+&lt;span class="nv"&gt;PATH&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/usr/local/bin:/usr/local/sbin:/bin:/usr/bin:/sbin:/usr/sbin
+&lt;span class="nv"&gt;DAEMON&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/usr/bin/startx
+&lt;span class="nv"&gt;PIDFILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/var/run/xorg-offseat.pid
+&lt;span class="nv"&gt;USER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;[your offseat user here]&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;HOME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;~&lt;span class="o"&gt;[&lt;/span&gt;your offseat user home dir here&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;CONFIG&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;xorg-xmbc.conf&amp;quot;&lt;/span&gt;
+
+&lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;$1&amp;quot;&lt;/span&gt; in
+  start&lt;span class="o"&gt;)&lt;/span&gt;
+    sleep 5s
+    &lt;span class="nb"&gt;echo&lt;/span&gt; -n &lt;span class="s2"&gt;&amp;quot;Starting X session: startx&amp;quot;&lt;/span&gt;
+    &lt;span class="nb"&gt;cd&lt;/span&gt; &lt;span class="nv"&gt;$HOME&lt;/span&gt;
+    /bin/su -- - &lt;span class="nv"&gt;$USER&lt;/span&gt; -c &lt;span class="s2"&gt;&amp;quot;xinit -- /usr/bin/X :2 vt9 -nolisten tcp -config $CONFIG -sharevts -novtswitch&amp;quot;&lt;/span&gt; &amp;lt;/dev/tty9 &amp;gt;/dev/tty9 2&amp;gt;/dev/tty9 &amp;amp; &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="nv"&gt;$!&lt;/span&gt; &amp;gt;&lt;span class="nv"&gt;$PIDFILE&lt;/span&gt;
+    &lt;span class="c"&gt;#/usr/bin/startx -- :2 vt9 -nolisten tcp -config $CONFIG -sharevts -novtswitch&amp;quot;&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;.&amp;quot;&lt;/span&gt;
+  ;;
+
+  restart&lt;span class="o"&gt;)&lt;/span&gt;
+    /etc/rc.d/xorg-offseat stop
+    /etc/rc.d/xorg-offseat start
+  ;;
+
+  stop&lt;span class="o"&gt;)&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; -n &lt;span class="s2"&gt;&amp;quot;Stopping X session: startx&amp;quot;&lt;/span&gt;
+    &lt;span class="nb"&gt;kill&lt;/span&gt; &lt;span class="sb"&gt;`&lt;/span&gt;cat &lt;span class="nv"&gt;$PIDFILE&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="nb"&gt;echo&lt;/span&gt; -n &lt;span class="s2"&gt;&amp;quot; not running&amp;quot;&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;.&amp;quot;&lt;/span&gt;
+  ;;
+
+  *&lt;span class="o"&gt;)&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Usage: /etc/init.d/xorg-offseat {start|stop|restart}&amp;quot;&lt;/span&gt;
+    &lt;span class="nb"&gt;exit &lt;/span&gt;1
+    ;;
+&lt;span class="k"&gt;esac&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;You can start this as you start any other daemons. And stop it as well.&lt;/p&gt;
+&lt;p&gt;If you don't want to use daemons, you can always rely on your display manager.
+I used KDM, trieg gdm but a lot has changed and the docs aren't much updated, so I can't be sure if it'll work.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configuring-kdm"&gt;
+&lt;h3&gt;Configuring KDM&lt;/h3&gt;
+&lt;p&gt;Open &lt;strong&gt;/usr/share/config/kdm/kdmrc&lt;/strong&gt; for editing, as root.&lt;/p&gt;
+&lt;p&gt;In the [General] section, change the &lt;strong&gt;ReserveServers&lt;/strong&gt; and &lt;strong&gt;StaticServers&lt;/strong&gt; as follows:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;ReserveServers&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:2,:3
+&lt;span class="nv"&gt;StaticServers&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:0,:1
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;At the end, add this snippet:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;[&lt;/span&gt;X-:0-Core&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;ServerArgsLocal&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;-nolisten tcp -config xorg.conf
+
+&lt;span class="o"&gt;[&lt;/span&gt;X-:1-Core&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;ServerArgsLocal&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;-nolisten tcp -config xorg-xbmc.conf -sharevts -novtswitch
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;If you want a user to auto-login on the second seat (in my case, I want the xbmc user to autologin),  add this to the file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;[&lt;/span&gt;X-:1-Core&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;AutoLoginEnable&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt;
+&lt;span class="nv"&gt;AutoLoginLocked&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;false&lt;/span&gt;
+&lt;span class="nv"&gt;AutoLoginUser&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;xbmc
+&lt;span class="nv"&gt;ClientLogFile&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;.xsession-errors
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Don't execute custom sessions!&lt;/strong&gt;. It's bugged. Try the default one and autostart xbmc from there.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="things-from-the-old-how-to"&gt;
+&lt;h2&gt;Things from the old How-To&lt;/h2&gt;
+&lt;div class="section" id="tweaking-hdmi-audio-for-xbmc"&gt;
+&lt;h3&gt;Tweaking HDMI audio for XBMC&lt;/h3&gt;
+&lt;p&gt;You need to find the alsa sinks of your system. To do that, use &lt;strong&gt;aplay -l&lt;/strong&gt;. The output should be something like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;**** List of PLAYBACK Hardware Devices ****
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 0: ALC887-VD Analog &lt;span class="o"&gt;[&lt;/span&gt;ALC887-VD Analog&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 1: ALC887-VD Digital &lt;span class="o"&gt;[&lt;/span&gt;ALC887-VD Digital&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 3: HDMI 0 &lt;span class="o"&gt;[&lt;/span&gt;HDMI 0&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 7: HDMI 1 &lt;span class="o"&gt;[&lt;/span&gt;HDMI 1&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 1: Generic &lt;span class="o"&gt;[&lt;/span&gt;HD-Audio Generic&lt;span class="o"&gt;]&lt;/span&gt;, device 3: HDMI 0 &lt;span class="o"&gt;[&lt;/span&gt;HDMI 0&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Next, find out which sink goes to the right HDMI. Use aplay for that:&lt;/p&gt;
+&lt;blockquote&gt;
+aplay -D plughw:[cardId],[deviceId] /usr/share/sounds/alsa/Front_Center.wav&lt;/blockquote&gt;
+&lt;p&gt;Replace cardId and deviceId from the list of playback hardware devices. When you hear a sound on your TV,
+you've hit the right device. Just remember the card id and the device id.&lt;/p&gt;
+&lt;p&gt;Go to XBMC System Settings-&amp;gt;Audio output. Choose Audio output device - Custom. Insert plughw:[cardId],[deviceId](e.g. plughw:0,7) in Custom audio device. You're done. XBMC should route audio thru your HDMI.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="tweaking-policykit"&gt;
+&lt;h3&gt;Tweaking policykit&lt;/h3&gt;
+&lt;p&gt;If the second seat is unable to use removable drives, bluetooth dongles, policykit is to blame.&lt;/p&gt;
+&lt;p&gt;Add/Edit &lt;strong&gt;/etc/polkit-1/localauthority/50-local.d/mseat.pkla&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;[&lt;/span&gt;allow operations&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;Identity&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;unix-group:plugdev
+&lt;span class="nv"&gt;Action&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;org.freedesktop.udisks.*;org.blueman.*;org.freedesktop.pulseaudio
+&lt;span class="nv"&gt;ResultAny&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;span class="nv"&gt;ResultActive&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;span class="nv"&gt;ResultInactive&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;That should be it.&lt;/p&gt;
+&lt;p&gt;If this setup doesn't work for you, don't give up easily. Ask around forums and irc. These setups can differ largely, based on the hardware and the setup. You can ask in comments as well. I'll try to help out as much as I can.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="post-scriptum"&gt;
+&lt;h2&gt;Post Scriptum&lt;/h2&gt;
+&lt;p&gt;Comment me with your issues, I'll try to help as much as I can. Try to leave verbose outputs please. Best of luck with your multi-seat setups!&lt;/p&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Tue, 30 Oct 2012 23:03:00 -0000</pubDate><guid>tag:brainacle.com,2012-10-30:updated-multiseating-with-kde-and-xbmc.html</guid><category>kde</category><category>xbmc</category><category>desktop</category><category>linux</category><category>miscellaneous</category><category>multiseat</category><category>xorg</category></item><item><title>Multiseating with KDE and XBMC</title><link>http://brainacle.com/multiseating-with-kde-and-xbmc.html</link><description>&lt;div class="section" id="id1"&gt;
+&lt;h2&gt;&lt;a class="reference external" href="http://brainacle.com/multiseating-with-kde-and-xbmc-like-a-boss-update.html"&gt;UPDATED with udev, modular configuration and less headache here.&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Linux multi-seat setup is a setup where multiple users can use the same PC simultaneously.
+You have a monitor and input devices for each of those users, and a separate X session for all.
+It's a PITA to set up if you don't know what to do, but the end result is legendary.
+Trust me, I spent countless hours setting up mine, but it was worth it.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="why"&gt;
+&lt;h2&gt;Why?&lt;/h2&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;You have a spare hardware, and you want to utilize it&lt;/li&gt;
+&lt;li&gt;You have 1 PC, but you want your sibling/SO/family member to have it's own independent environment&lt;/li&gt;
+&lt;li&gt;You want to add a TV or multimedia session monitor to your setup that will be independent of your current desktop session (we'll focus on this)&lt;/li&gt;
+&lt;li&gt;It's awesome!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="section" id="what-do-i-need"&gt;
+&lt;h2&gt;What do I need?&lt;/h2&gt;
+&lt;p&gt;First off, you need a PC with at least 2 graphic cards. Any combination is good. N discrete GPUs or 1 integrated + N discrete.
+If you mix graphic card vendors, try to use the FOSS drivers. I haven't tested multiseating with mixed binary drivers or blobs and FOSS drivers. I'll update the post once I test this.&lt;/p&gt;
+&lt;p&gt;You need at least 1 monitor per seat, or you can switch one monitor back and forward. In the guide (my setup), I use 3 monitors.
+One dual-head seat and one single-monitor seat. At least one monitor per GPU.&lt;/p&gt;
+&lt;p&gt;You'll need separate inputs for each seat. They are optional, but how would that work? Try to, at least, get another mouse.&lt;/p&gt;
+&lt;p&gt;You'll need advanced knowledge on Linux. Sorry, but this is an advanced topic, so If you don't know how to set up xorg.conf, you are
+in for a lot of frustrations.&lt;/p&gt;
+&lt;p&gt;Iron will and nerves of steel: It might be a bumpy ride, so brace yourself.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="my-scenario"&gt;
+&lt;h2&gt;My scenario&lt;/h2&gt;
+&lt;p&gt;I recently purchased a TV and wanted to hook it up to the PC, pop XBMC on it, and, if possible, make it work with separate user/input/session. A perfect use-case for a multi-seat. I already had a dual-head setup with an ATI Radeon HD6770. My PC has
+an integrated HD2000 GPU (i3-2120) which I could use for the second seat. Pics:&lt;/p&gt;
+&lt;div class="center-align container"&gt;
+&lt;img alt="" src="../static/uploads/ms1.jpg" /&gt;
+&lt;p&gt;2 monitors on the Ati, TV tied to the onboard graphic card via HDMI&lt;/p&gt;
+&lt;img alt="" src="../static/uploads/ms2.jpg" /&gt;
+&lt;p&gt;Main seat - dual-head, KDE session&lt;/p&gt;
+&lt;img alt="" src="../static/uploads/ms3.jpg" /&gt;
+&lt;p&gt;XBMC running on the TV in separate session/seat&lt;/p&gt;
+&lt;img alt="" src="../static/uploads/ms4.jpg" /&gt;
+&lt;p&gt;KDE running on the TV in separate session/seat&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;I could have gone with the triple-head setup, but:&lt;/p&gt;
+&lt;ol class="arabic simple"&gt;
+&lt;li&gt;It puts a lot of strain to the main GPU&lt;/li&gt;
+&lt;li&gt;Vsync is out of whack&lt;/li&gt;
+&lt;li&gt;It bugs out often&lt;/li&gt;
+&lt;li&gt;All my monitors are different sizes/resolutions.&lt;/li&gt;
+&lt;li&gt;Running XBMC on fullscreen on the third monitor is a pain.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;With multiseat, I run xbmc automatically, fullscreen, in a separate session and a separate user.&lt;/p&gt;
+&lt;p&gt;My distro is Archlinux. The configurations or config file paths might differ in other distros, but it shouldn't be a problem.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="backup-all-the-files-you-ll-be-changing-before-you-start-changing-them"&gt;
+&lt;h2&gt;&lt;strong&gt;Backup all the files you'll be changing before you start changing them.&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Lets start configuring!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="xorg-configuration"&gt;
+&lt;h2&gt;Xorg Configuration&lt;/h2&gt;
+&lt;p&gt;Before you start, make sure you have a fresh distro. 3.2+ kernel, xorg 1.10+, evdev drivers for mouse and keyboard.&lt;/p&gt;
+&lt;div class="section" id="finding-out-busid-of-the-gpus"&gt;
+&lt;h3&gt;Finding out BusId of the GPUs&lt;/h3&gt;
+&lt;p&gt;We use BusId of the GPU to configure the &amp;quot;Device&amp;quot; parts in xorg.conf. The BusID is a string that looks like &amp;quot;PCI:1:0:0&amp;quot;.
+To find out the right BusID, use &lt;strong&gt;lspci | egrep &amp;quot;VGA|Display&amp;quot;&lt;/strong&gt;. The output should look something like this:&lt;/p&gt;
+&lt;blockquote&gt;
+00:02.0 Display controller: Intel Corporation 2nd Generation Core Processor Family Integrated Graphics Controller (rev 09)
+01:00.0 VGA compatible controller: Advanced Micro Devices [AMD] nee ATI Juniper XT [AMD Radeon HD 6000 Series]&lt;/blockquote&gt;
+&lt;p&gt;The output is pretty much straightforward. You can see which Bus is which GPU. So, based on this, your BusIDs would be
+&lt;strong&gt;PCI:0:2:0&lt;/strong&gt; and &lt;strong&gt;PCI:1:0:0&lt;/strong&gt;. Save those strings somewhere, you'll need them later.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="finding-out-device-path-of-the-input-devices"&gt;
+&lt;h3&gt;Finding out Device Path of the Input devices&lt;/h3&gt;
+&lt;p&gt;Plug in all the inputs you'll be using. Use &lt;strong&gt;ls /dev/input/by-id&lt;/strong&gt;. The output should look like this:&lt;/p&gt;
+&lt;blockquote&gt;
+usb-Logitech_Logitech_Illuminated_Keyboard-event-if01
+usb-Logitech_Logitech_Illuminated_Keyboard-event-kbd
+usb-Logitech_USB_RECEIVER-event-mouse
+usb-Razer_Razer_DeathAdder-event-mouse&lt;/blockquote&gt;
+&lt;p&gt;From this list, you can identify your inputs. If you have same vendor/model inputs, you can reference them by
+bus and device ID, and even by the simplest form &lt;strong&gt;/dev/input/eventX&lt;/strong&gt;. I suggest you use some specific referencing - by id or by device id.&lt;/p&gt;
+&lt;p&gt;So, my device paths are:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;/dev/input/by-id/usb-Logitech_Logitech_Illuminated_Keyboard-event-kbd&lt;/li&gt;
+&lt;li&gt;/dev/input/by-id/usb-Logitech_USB_RECEIVER-event-mouse&lt;/li&gt;
+&lt;li&gt;/dev/input/by-id/usb-Razer_Razer_DeathAdder-event-mouse&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;That's all we need for now. Let's pull all of this in xorg.conf:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configuring-x"&gt;
+&lt;h3&gt;Configuring X&lt;/h3&gt;
+&lt;p&gt;This is the most important step in making a multiseat. We work solely on xorg.conf.&lt;/p&gt;
+&lt;p&gt;Open /etc/X11/xorg.conf for editing, as root user. If you don't have that file, just create it. &lt;strong&gt;Note:&lt;/strong&gt;
+Different distros might have different xorg.conf path. Most of the distros use /etc/X11/.&lt;/p&gt;
+&lt;p&gt;We'll use a simple, barebone xorg configuration, and let X autoconfigure everything else:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;Section &lt;span class="s2"&gt;&amp;quot;ServerFlags&amp;quot;&lt;/span&gt;
+    &lt;span class="c"&gt;# Xorg will otherwise not start if it can&amp;#39;t find a mouse to use. Better safe than sorry.&lt;/span&gt;
+    Option  &lt;span class="s2"&gt;&amp;quot;AllowMouseOpenFail&amp;quot;&lt;/span&gt;    &lt;span class="s2"&gt;&amp;quot;true&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;InputDevice&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#Configuring the keyboard for the main seat&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;keyboard0&amp;quot;&lt;/span&gt;
+        Driver &lt;span class="s2"&gt;&amp;quot;evdev&amp;quot;&lt;/span&gt;
+        Option &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/dev/input/by-id/usb-Logitech_Logitech_Illuminated_Keyboard-event-kbd&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;InputDevice&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#Configuring the mouse for the main seat&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;mouse0&amp;quot;&lt;/span&gt;
+        Driver &lt;span class="s2"&gt;&amp;quot;evdev&amp;quot;&lt;/span&gt;
+        Option &lt;span class="s2"&gt;&amp;quot;Protocol&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Auto&amp;quot;&lt;/span&gt;
+        Option &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/dev/input/by-id/usb-Razer_Razer_DeathAdder-event-mouse&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;InputDevice&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#Configuring the mouse for the second seat&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;mouse1&amp;quot;&lt;/span&gt;
+        Driver &lt;span class="s2"&gt;&amp;quot;evdev&amp;quot;&lt;/span&gt;
+        Option &lt;span class="s2"&gt;&amp;quot;Protocol&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Auto&amp;quot;&lt;/span&gt;
+        Option &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/dev/input/by-id/usb-Logitech_USB_RECEIVER-event-mouse&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#Configuring the discrete GPU&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;radeon&amp;quot;&lt;/span&gt;
+        Driver &lt;span class="s2"&gt;&amp;quot;radeon&amp;quot;&lt;/span&gt; &lt;span class="c"&gt;#Or a driver specific to your GPU - &amp;quot;nvidia&amp;quot;&lt;/span&gt;
+        BusId &lt;span class="s2"&gt;&amp;quot;PCI:1:0:0&amp;quot;&lt;/span&gt; &lt;span class="c"&gt;#From the BusID section above&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;Device&amp;quot;&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;intel&amp;quot;&lt;/span&gt;
+        Driver &lt;span class="s2"&gt;&amp;quot;intel&amp;quot;&lt;/span&gt; &lt;span class="c"&gt;#Or a driver specific to your GPU - &amp;quot;nvidia&amp;quot;, &amp;quot;radeon&amp;quot;&lt;/span&gt;
+        BusId &lt;span class="s2"&gt;&amp;quot;PCI:0:2:0&amp;quot;&lt;/span&gt; &lt;span class="c"&gt;#From the BusID section above&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;Screen&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;# Configuring the screen for the main seat&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;screen0&amp;quot;&lt;/span&gt;
+        Device &lt;span class="s2"&gt;&amp;quot;radeon&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;Screen&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;# Configuring the screen for the second seat&lt;/span&gt;
+        Identifier &lt;span class="s2"&gt;&amp;quot;screen1&amp;quot;&lt;/span&gt;
+        Device &lt;span class="s2"&gt;&amp;quot;intel&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;ServerLayout&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#Configuring the Server layout for the main seat&lt;/span&gt;
+        Identifier      &lt;span class="s2"&gt;&amp;quot;main&amp;quot;&lt;/span&gt;
+        Screen          &lt;span class="s2"&gt;&amp;quot;screen0&amp;quot;&lt;/span&gt;       0                   0
+        InputDevice     &lt;span class="s2"&gt;&amp;quot;mouse0&amp;quot;&lt;/span&gt;        &lt;span class="s2"&gt;&amp;quot;CorePointer&amp;quot;&lt;/span&gt;
+        InputDevice     &lt;span class="s2"&gt;&amp;quot;keyboard0&amp;quot;&lt;/span&gt;     &lt;span class="s2"&gt;&amp;quot;CoreKeyboard&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#This is a must - otherwise, it will add all the inputs to this seat&lt;/span&gt;
+        Option          &lt;span class="s2"&gt;&amp;quot;AutoAddDevices&amp;quot;&lt;/span&gt;        &lt;span class="s2"&gt;&amp;quot;off&amp;quot;&lt;/span&gt;
+EndSection
+
+Section &lt;span class="s2"&gt;&amp;quot;ServerLayout&amp;quot;&lt;/span&gt;
+        &lt;span class="c"&gt;#Configuring the Server layout for the second seat&lt;/span&gt;
+        Identifier      &lt;span class="s2"&gt;&amp;quot;tv&amp;quot;&lt;/span&gt;
+        Screen          &lt;span class="s2"&gt;&amp;quot;screen1&amp;quot;&lt;/span&gt;       0                   0
+        InputDevice     &lt;span class="s2"&gt;&amp;quot;mouse1&amp;quot;&lt;/span&gt;        &lt;span class="s2"&gt;&amp;quot;CorePointer&amp;quot;&lt;/span&gt;
+
+        &lt;span class="c"&gt;#If you have a spare keyboard, make another InputDevice entry for it and add it here&lt;/span&gt;
+        &lt;span class="c"&gt;#InputDevice     &amp;quot;keyboard1&amp;quot;     &amp;quot;CoreKeyboard&amp;quot;&lt;/span&gt;
+
+        &lt;span class="c"&gt;#This is a must - otherwise, it will add all the inputs to this seat&lt;/span&gt;
+        Option          &lt;span class="s2"&gt;&amp;quot;AutoAddDevices&amp;quot;&lt;/span&gt;        &lt;span class="s2"&gt;&amp;quot;off&amp;quot;&lt;/span&gt;
+EndSection
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Next, we configure the session manager&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configuring-kdm"&gt;
+&lt;h3&gt;Configuring KDM&lt;/h3&gt;
+&lt;p&gt;Since I use KDE, I'll show you how to configure KDM. If you use other DE, please google around, it's mostly similar to this.&lt;/p&gt;
+&lt;p&gt;Open &lt;strong&gt;/usr/share/config/kdm/kdmrc&lt;/strong&gt; for editing, as root.&lt;/p&gt;
+&lt;p&gt;In the [General] section, change the &lt;strong&gt;ReserveServers&lt;/strong&gt; and &lt;strong&gt;StaticServers&lt;/strong&gt; as follows:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;ReserveServers&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:2,:3
+&lt;span class="nv"&gt;StaticServers&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:0,:1
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;At the end, add this snippet:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;[&lt;/span&gt;X-:0-Core&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;ServerArgsLocal&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;-nolisten tcp -layout main
+
+&lt;span class="o"&gt;[&lt;/span&gt;X-:1-Core&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;ServerArgsLocal&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;-nolisten tcp -layout tv -sharevts -novtswitch
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;If you want a user to auto-login on the second seat (in my case, I want the xbmc user to autologin),  add this to the file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;[&lt;/span&gt;X-:1-Core&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;AutoLoginEnable&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt;
+&lt;span class="nv"&gt;AutoLoginLocked&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;false&lt;/span&gt;
+&lt;span class="nv"&gt;AutoLoginUser&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;xbmc
+&lt;span class="nv"&gt;ClientLogFile&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;.xsession-errors
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And, if you want a custom session to be executed, not the default - KDE, you'll need 2 things:&lt;/p&gt;
+&lt;ol class="arabic simple"&gt;
+&lt;li&gt;A shell script that would execute the session (exec xbmc-standalone), marked executable&lt;/li&gt;
+&lt;li&gt;Add a line in &lt;strong&gt;[X-:1-Core]&lt;/strong&gt; - &lt;strong&gt;Session=/path/to/that/shell/script&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;That's it for KDM. If you followed and saved everything, you can restart X now. You don't need to reboot (but do it anyway).
+Next login, you should see different sessions on different GPUs&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;If you have any problems starting the X server, just move or remove xorg.conf, and revert kdmrc. Keep backups of the old files, so you can revert fast&lt;/strong&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="fine-tuning"&gt;
+&lt;h2&gt;Fine tuning&lt;/h2&gt;
+&lt;p&gt;Now, I have a KDE session on my main seat, and xbmc session on my second seat. But no sound...
+Making the sound work on a multi-seat system is quite difficult and it differs from the type of sound architecture.&lt;/p&gt;
+&lt;p&gt;In my scenario, I feed my audio through the HDMI cable to the TV, and it's quite easy to do so. I have pulseaudio on my system.&lt;/p&gt;
+&lt;div class="section" id="tweaking-hdmi-audio-for-xbmc"&gt;
+&lt;h3&gt;Tweaking HDMI audio for XBMC&lt;/h3&gt;
+&lt;p&gt;You need to find the alsa sinks of your system. To do that, use &lt;strong&gt;aplay -l&lt;/strong&gt;. The output should be something like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;**** List of PLAYBACK Hardware Devices ****
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 0: ALC887-VD Analog &lt;span class="o"&gt;[&lt;/span&gt;ALC887-VD Analog&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 1: ALC887-VD Digital &lt;span class="o"&gt;[&lt;/span&gt;ALC887-VD Digital&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 3: HDMI 0 &lt;span class="o"&gt;[&lt;/span&gt;HDMI 0&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 0: PCH &lt;span class="o"&gt;[&lt;/span&gt;HDA Intel PCH&lt;span class="o"&gt;]&lt;/span&gt;, device 7: HDMI 1 &lt;span class="o"&gt;[&lt;/span&gt;HDMI 1&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+card 1: Generic &lt;span class="o"&gt;[&lt;/span&gt;HD-Audio Generic&lt;span class="o"&gt;]&lt;/span&gt;, device 3: HDMI 0 &lt;span class="o"&gt;[&lt;/span&gt;HDMI 0&lt;span class="o"&gt;]&lt;/span&gt;
+  Subdevices: 1/1
+  Subdevice &lt;span class="c"&gt;#0: subdevice #0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Next, find out which sink goes to the right HDMI. Use aplay for that:&lt;/p&gt;
+&lt;blockquote&gt;
+aplay -D plughw:[cardId],[deviceId] /usr/share/sounds/alsa/Front_Center.wav&lt;/blockquote&gt;
+&lt;p&gt;Replace cardId and deviceId from the list of playback hardware devices. When you hear a sound on your TV,
+you've hit the right device. Just remember the card id and the device id.&lt;/p&gt;
+&lt;p&gt;Go to XBMC System Settings-&amp;gt;Audio output. Choose Audio output device - Custom. Insert plughw:[cardId],[deviceId](e.g. plughw:0,7) in Custom audio device. You're done. XBMC should route audio thru your HDMI.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="tweaking-policykit"&gt;
+&lt;h3&gt;Tweaking policykit&lt;/h3&gt;
+&lt;p&gt;If the second seat is unable to use removable drives, bluetooth dongles, policykit is to blame.&lt;/p&gt;
+&lt;p&gt;Add/Edit &lt;strong&gt;/etc/polkit-1/localauthority/50-local.d/mseat.pkla&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;[&lt;/span&gt;allow operations&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;Identity&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;unix-group:plugdev
+&lt;span class="nv"&gt;Action&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;org.freedesktop.udisks.*;org.blueman.*;org.freedesktop.pulseaudio
+&lt;span class="nv"&gt;ResultAny&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;span class="nv"&gt;ResultActive&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;span class="nv"&gt;ResultInactive&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;That should be it.&lt;/p&gt;
+&lt;p&gt;If this setup doesn't work for you, don't give up easily. Ask around forums and irc. These setups can differ largely, based on the hardware and the setup. You can ask in comments as well. I'll try to help out as much as I can.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="post-scriptum"&gt;
+&lt;h2&gt;Post Scriptum&lt;/h2&gt;
+&lt;p&gt;The &amp;quot;howto&amp;quot; is quite big for me to follow. If you feel I've missed anything, notify me in comments and I'll update the post. Thanks for understanding.&lt;/p&gt;
+&lt;p&gt;I want to thank the Archlinux and Gentoo communities for their effort on the wikis. They helped me a lot in making this.
+Also, kudos to the whole Linux community for doing things this awesome.&lt;/p&gt;
+&lt;p&gt;And, XBMC devs, hats off to you guys!&lt;/p&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Sun, 27 May 2012 21:03:00 -0000</pubDate><guid>tag:brainacle.com,2012-05-27:multiseating-with-kde-and-xbmc.html</guid><category>kde</category><category>xbmc</category><category>desktop</category><category>linux</category><category>miscellaneous</category><category>multiseat</category><category>xorg</category></item><item><title>KDE vs. Gnome - A Subjective View : UPDATE</title><link>http://brainacle.com/kde-vs-gnome-a-subjective-view-update.html</link><description>&lt;p&gt;Few months ago, I &lt;a class="reference external" href="/kde-vs-gnome-a-subjective-view.html"&gt;wrote an article&lt;/a&gt; on my view on the KDE vs. Gnome - Pros, Cons, stuff that irritates me and stuff
+that's good. At that time, I was still a Gnome user. But after a lot of frustrations with the Gnome desktop,
+I switched to KDE and never went back to this date. After KDE SC 4.8 dropped in. Archlinux immediately picked it up, as
+always, so I had a lot of time to test drive it and see how it preforms.&lt;/p&gt;
+&lt;p&gt;This update is about my view on the updated KDE 4.8 and everything I did to make my KDE experience better (things that were on the cons list last time).
+As a bonus, a bit of ranting about the current state of Linux on the Desktop.&lt;/p&gt;
+&lt;div class="section" id="testing-ground"&gt;
+&lt;h2&gt;Testing Ground&lt;/h2&gt;
+&lt;p&gt;Another thing that changed in the meantime, was my workstation:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;i3-2120 3.3GHz&lt;/p&gt;
+&lt;p&gt;Asus P8Z68-V LX&lt;/p&gt;
+&lt;p&gt;8GB ddr3 ram&lt;/p&gt;
+&lt;p&gt;Ati Radeon HD6770 1GB DDR5 with fglrx (binary driver AND radeon) + NVidia GT440 + HD2000 - tested on all cards&lt;/p&gt;
+&lt;p&gt;1x22&amp;quot;&amp;#64;1680x1050 + 1x24&amp;quot;&amp;#64;1920x1200 monitors&lt;/p&gt;
+&lt;p&gt;Archlinux, latest updates and some Sabayon KDE tests&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="section" id="enter-kde-4-8"&gt;
+&lt;h3&gt;Enter KDE 4.8&lt;/h3&gt;
+&lt;p&gt;On first looks, KDE 4.8 is not too much different from 4.7. The panel is reworked a bit, so it looks slicker, dolphin does tricks when resizing,
+tweak here and there. The real update KDE 4.8 brings is increased performance. It's truly faster. For the first time, OpenGL renderer is faster than
+XRender, even with VSync on. Woot! Now, I can enable desktop effects and don't worry about performance drop. On all cards and all drivers!&lt;/p&gt;
+&lt;p&gt;This might not strike you as an update, but at this moment, it's joy to me - KDE still keeps the original desktop metaphor as primary, and adds on that
+an even better &lt;strong&gt;optional&lt;/strong&gt; interface, optimized for small/touch displays. I bolded &lt;strong&gt;optional&lt;/strong&gt; because everybody seems trigger happy when dealing with touch displays,
+destroying the good ole' desktop in the process (yes. I'm looking at you Gnome. You too Ubuntu!). Anyway, for the interested, check out &lt;a class="reference external" href="http://community.kde.org/Plasma/Active"&gt;Plasma Active&lt;/a&gt;.&lt;/p&gt;
+&lt;div class="section" id="dolphin"&gt;
+&lt;h4&gt;Dolphin&lt;/h4&gt;
+&lt;p&gt;Still no mouse back-button. A bit bummer, but i learned to live with it. At least, dolphin has better UI than any GTK based file manager, so
+going back and forward, up and down, is easy with mouse/keyboard. You could try the hack with xbindkeys, but apparently, it hates my Razer Deathadder.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="kio"&gt;
+&lt;h4&gt;KIO&lt;/h4&gt;
+&lt;p&gt;Nothing has changed here. And I doubt anything will, so, I did a few tweaks - I'm using smb4k for smb hosts, and VLC has implemented KIO slaves!
+I can live with this and so can you.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="kde-wallet"&gt;
+&lt;h4&gt;KDE-Wallet&lt;/h4&gt;
+&lt;p&gt;I was under the impression that KSecretService will change things, but it wasn't what I was hoping for. So, I made a bit of tweaking here too.
+I use keychain and add &lt;strong&gt;eval `keychain --eval --agents ssh -Q --quiet id_dsa`&lt;/strong&gt; to my .zshrc/.bashrc. Then, if you use openssh ask pass, KDE wallet can
+save the password. Works like a charm. Eat that gnome keyring!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="general-performance-bugs"&gt;
+&lt;h4&gt;General / Performance bugs&lt;/h4&gt;
+&lt;p&gt;A lot has changed here. There are no corruptions (to date) in the plasmoids, panels etc. All works good. Resizing dolphin is fast (except with some NVidias+blobs).
+There was a significant lag when one starts dragging window that's not focused. It works great now.&lt;/p&gt;
+&lt;p&gt;The default application bundle is still better than Gnome's (seriously, compare Evince to Okular, Brasero to K3b, Gwenview to any gnome image viewer).&lt;/p&gt;
+&lt;p&gt;It still looks frickin' GOOD! It's so good looking and configurable, Gnome looks like an OS intended for some child-centric laptop. You can tweak every little bit of it.
+And they should start selling this point! Average new user won't be aware of this and might revert him from KDE. Seriously guys, Moar marketing nao!&lt;/p&gt;
+&lt;div class="center-align container"&gt;
+&lt;img alt="" src="../static/uploads/beauty.png" /&gt;
+&lt;/div&gt;
+&lt;p&gt;There were some screenshots of KDE made to look like Unity/Gnome3. If you want that look, you can &lt;a class="reference external" href="http://maketecheasier.com/give-kde-desktop-ubuntu-makeover/2011/11/23"&gt;have it&lt;/a&gt; .&lt;/p&gt;
+&lt;p&gt;And the most important, it didn't betray the users that respect and like the desktop metaphor, just so it can be in the
+competition for the best UI for the tablets/phones/TV. It still is - with Plasma Active, and by the looks of it, it already scores big time,
+but they stayed loyal to the old ways. The way a desktop is meant to be.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="gnome-3-unity"&gt;
+&lt;h3&gt;Gnome 3 / Unity&lt;/h3&gt;
+&lt;p&gt;Sadly, nothing has changed here. They really stuck with it. Good for you guys! One thing tho. When a user needs 30 different
+apps to change the UI, you aren't doing a good work. I've been a PC and Linux user for many years, I have friends with the same/similar
+experience, and neither one of them has said good things about G3/Unity. Few friends were so appalled by the current state,
+they switched to Mac after all these years (KDE was not an option because of the issues mentioned in the previous post).&lt;/p&gt;
+&lt;p&gt;The only &amp;quot;serious&amp;quot; DE that promises, is Cinamon by Linux Mint dudes, but:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;1: It's a long shot. The community working on it is small and poorly financed&lt;/p&gt;
+&lt;p&gt;2: It's new. XFCE has been on the scene longer, yet it can't come even remotely close to the usage of Gnome/KDE&lt;/p&gt;
+&lt;p&gt;3: It's Gnome3 at it's core!&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;And mate...&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="bonus-my-view-on-the-whole-desktop-thing"&gt;
+&lt;h3&gt;Bonus: My view on the whole Desktop thing&lt;/h3&gt;
+&lt;p&gt;After a long time of me ranting about the slug that was KDE compared to Gnome, I caved in and moved (for good i hope). I owe some people apologies. KDE community is focused on
+&lt;strong&gt;building&lt;/strong&gt; and &lt;strong&gt;improving&lt;/strong&gt; stuff. Not tearing the old things and starting from scratch. I know, I know. KDE 3 to 4. Now, think about how big of a change was that, and how much
+Gnome 2 changed when it hit 3. We all owe KDE apologies!&lt;/p&gt;
+&lt;p&gt;As a bonus, here are some of my thoughts on Linux on the Desktop:&lt;/p&gt;
+&lt;p&gt;No, it's not the year of Linux for the Desktop. It's (and will be) the year of Linux for the smartphone. If we want to live to see Linux on the desktop,
+&lt;strong&gt;PEOPLE SHOULD USE IT!&lt;/strong&gt;. A lot of people say they use Linux, but they don't. Either they use it in VM or dual boot it with Windows as a secondary - testing machine.&lt;/p&gt;
+&lt;p&gt;In order for people to use Linux on the desktop, a lot of things have to change.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;First and foremost, stop the effin' fragmentation! 2 DEs were enough. 4 are a lot. 6 are shaving yaks. KDE is doing the right thing at the moment. Switch to it. You'll thank me later. That will make some of the popular - entry-level distros to support their KDE flavors more and we'll stop bitching about the damned tablet mentality.&lt;/p&gt;
+&lt;p&gt;Second: Great Unified Package manager. See Mac's bundles. People have big HDDs now, you can ship the libs in the same folder even if the lib is present in the system.&lt;/p&gt;
+&lt;p&gt;Third: Stop focusing on minor things and fix the Elephant. Ubuntu folk were so excited about the new test printer template, but I can't see it because I can't
+make my printer work on Linux!&lt;/p&gt;
+&lt;p&gt;Fourth: For Buddha's sake, stop the support for antics. There's enough backlog of every distribution in history to power anything from Eniac to a super modern workstation.
+Slim down on support for old hardware.&lt;/p&gt;
+&lt;p&gt;And most important: Stop being purists and elitists. So what if a distro ships with non-free drivers? Boo-hoo!
+Are you trying to chase even those that stick to Linux? Personally, I've been FOSS supporter for a lot of time, but
+even I don't want to limit myself because there is no (truly) free support for my hardware. NVidia/Ati blobs are free of charge - aren't they?
+So what if a user uses DE instead of Awesome/ratpoison/dwm/xmonad? Not all Linux users are sysadmins or Haskell hackers, you know. Don't call them newbs.
+Focus a bit more to the user. Ubuntu did that, and was reign of the Linux on the desktop until the Great Tabletation. They had the chance, and they blew it.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Believe me, I want to see Linux in the top percentages of usage as much as the next guy, but in order for that to happen, I have to make my wife, my brother, my aunt, my cousins to use Linux.
+It's a tough task. They can't install apps, they can't install Linux on their cheap laptops, they can't make their wi-fi/printer work, &lt;strong&gt;they can't find the start button!&lt;/strong&gt; And they make for the majority
+of users! Tech savvy people are small percentage, and they tend to focus on the work instead hacking config files, compiling mesa stacks, chasing windows and hot spots for activating the launchers.
+Make it work OOB. Let's copy Windows for a change :) (just kidding... or am I).&lt;/p&gt;
+&lt;p&gt;P.S. -again- For the purists s/Linux/Gnu\/Linux/&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Thu, 12 Apr 2012 00:03:00 -0000</pubDate><guid>tag:brainacle.com,2012-04-12:kde-vs-gnome-a-subjective-view-update.html</guid><category>kde</category><category>gnome</category><category>desktop</category><category>linux</category><category>miscellaneous</category></item><item><title>How to use Django Uni-form with Twitter Bootstrap CSS</title><link>http://brainacle.com/how-to-use-django-uni-form-with-twitter-bootstrap-css.html</link><description>&lt;p&gt;I'm sure, most of you, know what &lt;a class="reference external" href="https://github.com/pydanny/django-uni-form"&gt;django-uni-form&lt;/a&gt; is... For those that don't, django-uni-form is a
+very cool django app that makes form management/styling/layouting a breeze. You can do pretty much anything to a form with it: Split it in formsets, add
+HTML between every element, wrap different elements in different containers etc. Also, it produces great HTML, and it manages the &amp;lt;form&amp;gt; tag, as well
+as the submit/reset buttons. If you aren't using it, you should definitely start.&lt;/p&gt;
+&lt;p&gt;&lt;a class="reference external" href="http://twitter.github.com/bootstrap/"&gt;Twitter Bootstrap&lt;/a&gt; is a client side framework by twitter, encompassing many aspects - layout, sane default CSS, typography,
+Javascript plugins, even some icons. It looks very professional, it's easy to use and very popular. The way bootstrap styles a form is what most people need when
+building or prototyping a web app. But, you need to be able to change some css classes and html elements in order to work.&lt;/p&gt;
+&lt;p&gt;Doing this with django-uni-form is extremely easy. All we need to do is change the default &lt;strong&gt;field&lt;/strong&gt; template. I'll start with an example:&lt;/p&gt;
+&lt;div class="section" id="bootstrap"&gt;
+&lt;h2&gt;Bootstrap&lt;/h2&gt;
+&lt;p&gt;This step is easy. Just make sure you have downloaded the Bootstrap CSS file, and that it's properly loaded.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-html"&gt;
+&lt;h2&gt;The HTML&lt;/h2&gt;
+&lt;p&gt;Simple HTML is all we need:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;{% load uni_form_tags %}
+&lt;span class="cp"&gt;&amp;lt;!doctype html&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;html&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;head&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;title&amp;gt;&lt;/span&gt;Django Uniform and Bootstrap&lt;span class="nt"&gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
+  &lt;span class="c"&gt;&amp;lt;!-- LOAD BOOTSTRAP CSS HERE --&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/head&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;body&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;header&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;navbar&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;/header&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;role=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;main&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;container&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;row&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;span12&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+            {% uni_form form form.helper %}
+        &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;hr/&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;footer&amp;gt;&lt;/span&gt;
+      Brainacle 2012
+    &lt;span class="nt"&gt;&amp;lt;/footer&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+  &lt;span class="c"&gt;&amp;lt;!-- LOAD BOOTSTRAP JS HERE --&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/body&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-form"&gt;
+&lt;h2&gt;The Form&lt;/h2&gt;
+&lt;p&gt;I'm making a simple User edit ModelForm, with one extra text field:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.contrib.auth.models&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;User&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.core.urlresolvers&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;reverse&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;uni_form.helper&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;FormHelper&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;uni_form.layout&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ButtonHolder&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Submit&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Fieldset&lt;/span&gt;
+
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;UserEditForm&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ModelForm&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;bio&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;CharField&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;label&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;Bio&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;required&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="n"&gt;widget&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Textarea&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;attrs&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;class&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;span12&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}))&lt;/span&gt;
+
+    &lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Meta&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;model&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;User&lt;/span&gt;
+        &lt;span class="n"&gt;fields&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;username&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;first_name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;last_name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;email&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;FormHelper&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;form_method&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;POST&amp;#39;&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;form_action&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;reverse&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;user_edit_view_name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;form_class&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;form-horizontal&amp;#39;&lt;/span&gt;
+
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;layout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Layout&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+            &lt;span class="n"&gt;Fieldset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                &lt;span class="s"&gt;&amp;#39;Edit Account Info&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="s"&gt;&amp;#39;username&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;first_name&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;last_name&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="s"&gt;&amp;#39;email&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;bio&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;save&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="p"&gt;),&lt;/span&gt;
+            &lt;span class="n"&gt;ButtonHolder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                &lt;span class="n"&gt;Submit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;save&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Save&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;css_class&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;btn btn-large btn-primary pull-right&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;super&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;UserEditForm&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Notes:&lt;/strong&gt; We add span10 class to the &amp;quot;bio&amp;quot; field textarea because labels will take 2 spans, and we want the textarea
+fill the entire width. We add class &amp;quot;form-horizontal&amp;quot; to the form, to get the labels position in line with the inputs.
+The button classes are also important.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-magic"&gt;
+&lt;h2&gt;The Magic&lt;/h2&gt;
+&lt;p&gt;Now, we have to tell uni-form to generate html that will be compatible with Bootstrap.
+Lucky enough, uni-form provides us with the ability to override the generic field HTML template.
+Just make a new file called &lt;strong&gt;field.html&lt;/strong&gt; inside &lt;strong&gt;[template root path]/uni_form/&lt;/strong&gt; folder with the
+following content:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;{% if field.is_hidden %}
+    {{ field }}
+{% else %}
+&lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;control-group {% if field.errors %}error{% endif %}&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;label&lt;/span&gt; &lt;span class="na"&gt;for=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;{{ field.auto_id }}&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;control-label&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+        {% if field.field.required %}&lt;span class="nt"&gt;&amp;lt;b&amp;gt;&lt;/span&gt;{% endif %}{{ field.label|safe }}{% if field.field.required %}*&lt;span class="nt"&gt;&amp;lt;/b&amp;gt;&lt;/span&gt;{% endif %}
+    &lt;span class="nt"&gt;&amp;lt;/label&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;controls&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+        {{ field }}
+        {% if field.errors %}
+            &lt;span class="nt"&gt;&amp;lt;span&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;help-inline&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;{% for error in field.errors %}{{ error }}&lt;span class="nt"&gt;&amp;lt;br/&amp;gt;&lt;/span&gt; {% endfor %}&lt;span class="nt"&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
+        {% endif %}
+        {% if field.help_text%}
+            &lt;span class="nt"&gt;&amp;lt;p&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;help-block&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+                {{ field.help_text|safe }}
+            &lt;span class="nt"&gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
+        {% endif %}
+    &lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+{% endif %}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This template handles labels, required fields, help text, errors etc. The end result looks something like this:&lt;/p&gt;
+&lt;div class="center-align container"&gt;
+&lt;img alt="" src="../static/uploads/bootstrap_uniform.png" /&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Mon, 13 Feb 2012 20:58:00 -0000</pubDate><guid>tag:brainacle.com,2012-02-13:how-to-use-django-uni-form-with-twitter-bootstrap-css.html</guid><category>python</category><category>plugin</category><category>vim</category><category>coding</category><category>twitter</category><category>bootstrap</category><category>uniform</category></item><item><title>New Year's Python Meme 2012</title><link>http://brainacle.com/new-years-python-meme-2012.html</link><description>&lt;p&gt;Following Tarek Ziade's &lt;a class="reference external" href="http://tarekziade.wordpress.com/2011/12/20/new-years-python-meme-2/"&gt;#2012pythonmeme&lt;/a&gt;:&lt;/p&gt;
+&lt;div class="section" id="whats-the-coolest-python-application-framework-or-library-you-have-discovered-in-2011"&gt;
+&lt;h2&gt;1. What’s the coolest Python application, framework or library you have discovered in 2011?&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;&lt;strong&gt;gunicorn&lt;/strong&gt; - We are on our way to change every apache installation to gunicorn. Proved to be just as good and quite possibly, better.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;haystack&lt;/strong&gt; - I've built quite a few apps that employed solr, and every time I did that, I wrote the solr
+config and client API by hand. I was a bit skeptic about Haystack, but now that I've tried it in production,
+i won't be writing any more solr client APIs any more.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;python opencv&lt;/strong&gt; - Still haven't used it in production, but it's a very cool library.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;div class="section" id="what-new-programming-technique-did-you-learn-in-2011"&gt;
+&lt;h2&gt;2. What new programming technique did you learn in 2011 ?&lt;/h2&gt;
+&lt;p&gt;Meta programming in Python. I worked on a project that relied heavily on meta
+programming. It helped me get more insight in django's models and magic.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="whats-the-name-of-the-open-source-project-you-contributed-the-most-in-2011-what-did-you-do"&gt;
+&lt;h2&gt;3. What’s the name of the open source project you contributed the most in 2011 ? What did you do ?&lt;/h2&gt;
+&lt;p&gt;Around late November and throughout December, I started contributing to &lt;a class="reference external" href="https://github.com/ASKBOT/askbot-devel"&gt;AskBot&lt;/a&gt;.
+&lt;a class="reference external" href="https://github.com/ASKBOT/askbot-devel/commits/master?author=dekomote"&gt;Here is&lt;/a&gt; my contribution so far.
+2011 was a very busy year for me, didn't have much time to contribute. I hope things will change to better next year.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="what-was-the-python-blog-or-website-you-read-the-most-in-2011"&gt;
+&lt;h2&gt;4. What was the Python blog or website you read the most in 2011 ?&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="http://reddit.com/r/python/"&gt;/r/python&lt;/a&gt;. Every important news in the python
+community lands there pretty fast, and the discussions can be both
+entertaining and educational.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="what-are-the-three-top-things-you-want-to-learn-in-2012"&gt;
+&lt;h2&gt;5. What are the three top things you want to learn in 2012 ?&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;1. Qt / PyQT - IMHO Qt is the desktop toolkit that evolves the best of all. It has a great community,
+good documentation and a very rich feature set. It's cross-platform, and even mobile platforms (Android/iOS)
+are starting to support it.&lt;/p&gt;
+&lt;ol class="arabic simple" start="2"&gt;
+&lt;li&gt;C - I slowly started brushing up my C skills during this month, and I want to learn more advanced topics in C next year.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;3. Pypy - Haven't had the time to test this bad boy better. I have played with it couple of times, but I want to
+make a serious effort and see the advantages it brings.&lt;/p&gt;
+&lt;ol class="arabic simple" start="4"&gt;
+&lt;li&gt;If it's not too much already, I want to learn Scheme.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;div class="section" id="what-are-the-top-software-app-or-lib-you-wish-someone-would-write-in-2012"&gt;
+&lt;h2&gt;6. What are the top software, app or lib you wish someone would write in 2012 ?&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;ol class="arabic simple"&gt;
+&lt;li&gt;Python based Redmine... Better python based redmine.&lt;/li&gt;
+&lt;li&gt;Python based reporting software. Something like JasperReports&lt;/li&gt;
+&lt;li&gt;Out of the context, but I wish i can switch to Python3. I wish more libs get ported
+since there are some very good features of py3 i want to exploit.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;div class="section" id="want-to-do-your-own-list-heres-how"&gt;
+&lt;h2&gt;Want to do your own list? Here’s how:&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;Copy-paste the questions and answer to them in your blog&lt;/li&gt;
+&lt;li&gt;Tweet it with the #2012pythonmeme hashtag&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Wed, 28 Dec 2011 14:01:00 -0000</pubDate><guid>tag:brainacle.com,2011-12-28:new-years-python-meme-2012.html</guid><category>linux</category><category>coding</category><category>python</category><category>meme</category></item><item><title>KDE vs. Gnome - A Subjective View</title><link>http://brainacle.com/kde-vs-gnome-a-subjective-view.html</link><description>&lt;p&gt;Past year, a lot has changed with the desktop environments for Linux. Gnome going 3,
+Ubuntu going Unity, people going nuts about that. I've been experimenting with all of them trying to
+find the one that will serve me good and will evolve at a slower pace. I, being an exclusive computer/Linux user for a
+long time, had tough time with the new UIs (I prefer the old style - 1 panel on the bottom, no wobbly-wobbly).
+My distro of choice is Arch, and my DE of choice was Gnome + Openbox as a window manager. That combo proved
+to be fast, usable, considerate to hardware yet elegant and (at this moment of time) old-school. I should disclose that
+I use my primary desktop for everything, not just work (multimedia, internet, gaming) and as such, tilling WMs are a no-no.&lt;/p&gt;
+&lt;p&gt;Then, Gnome turned 3 and everything changed. Openbox was no longer an option (it has issues even on fall-back mode) so I was
+stuck with either metacity or mutter. At that moment I started looking into the alternatives. Spent some time on KDE,
+got LXDE on my netbook (and tried it on my desktop), even tried XFCE for a couple of weeks. This is my subjective
+view on why I stuck to Gnome 3 fall-back, what I hate about it, what I love and hate about KDE and why I can't work on KDE.&lt;/p&gt;
+&lt;div class="section" id="testing-ground"&gt;
+&lt;h2&gt;Testing Ground&lt;/h2&gt;
+&lt;p&gt;Before I start, I have to specify my testing ground. You might think that it's irrelevant, but I assure you,
+hardware makes big difference. Also, graphic drivers matter too. So, my spec:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;C2D E4600 2.8GHz (2.4 stock)&lt;/p&gt;
+&lt;p&gt;Asus P5P43TD-Pro&lt;/p&gt;
+&lt;p&gt;8GB ddr3 ram&lt;/p&gt;
+&lt;p&gt;NVidia GT440 OC-ed with Nvidia blob (binary driver)&lt;/p&gt;
+&lt;p&gt;1x22&amp;quot;&amp;#64;1680x1050 + 1x24&amp;quot;&amp;#64;1920x1200 monitors&lt;/p&gt;
+&lt;p&gt;Archlinux, latest updates&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;One of the best things about Arch is that you get almost vanilla versions of the DE in question. Kubuntu's KDE is tainted
+with additions and configurations, and won't be fair to be judged like that.&lt;/p&gt;
+&lt;div class="section" id="kde"&gt;
+&lt;h3&gt;KDE&lt;/h3&gt;
+&lt;div class="center-align container"&gt;
+&lt;img alt="" src="../static/uploads/kde.png" /&gt;
+&lt;/div&gt;
+&lt;p&gt;Look at this beauty! KDE is my secret love. It's that good. It looks clean and good, it's the old way (one panel at bottom, desktop is working area),
+it is feature packed and it evolves possibly the best of all of the DEs. And I would gladly use it! I will install it and not look
+back right this moment, if it weren't for some annoying stuff that make me rage every time I work on KDE:&lt;/p&gt;
+&lt;div class="section" id="dolphin"&gt;
+&lt;h4&gt;Dolphin&lt;/h4&gt;
+&lt;p&gt;No mouse back-button?! What's up with this! It's the 21st century. This has been implemented in almost every graphical file
+explorer since '98. And yeah... I know about the xautomation and xbindkeys fix, but I want this implemented out of the box.
+I really don't think it's hard to be implemented.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="kio"&gt;
+&lt;h4&gt;KIO&lt;/h4&gt;
+&lt;p&gt;So this is the KDE version of gvfs. NOT! It's not even implemented in every general-use software. My pain with this? If I want to
+open a movie from a samba share with VLC, I have to wait for it to be temporarily downloaded to my PC and then watch it. On gnome,
+I just open it, and watch it. The even funnier part is, if I use Kate in gnome, it automatically works with gvfs. Why don't you
+just integrate gvfs or make KIO work similarly?&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="kde-wallet"&gt;
+&lt;h4&gt;KDE-Wallet&lt;/h4&gt;
+&lt;p&gt;I don't like to input password every time I do a &lt;em&gt;git pull/push&lt;/em&gt;, &lt;em&gt;sudo&lt;/em&gt; etc. The KDE-wallet handles ssh auth poorly.
+There is a fix for it to work with ssh-agent, but why should I make fixes and patches when Gnome's keyring works out
+of the box?&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="general-performance-bugs"&gt;
+&lt;h4&gt;General / Performance bugs&lt;/h4&gt;
+&lt;p&gt;IMO, my configuration is pretty decent to run the DE on full power. Well, apparently, KDE wants a dual-SLI 580GTX.
+If I try to turn on the effects, KDE is unusable. If I turn them off, the interface shows random artifacts on screen.
+And this doesn't happen just on NV hardware. ATI story is worse! Same with sandybridge graphics.&lt;/p&gt;
+&lt;p&gt;Often, it happens, when I click on the start menu, the menu starts at the top of the screen. Or the panel is positioned on the
+top half. When I try to reposition it, it slowly falls back to the original place. Happens every restart.&lt;/p&gt;
+&lt;p&gt;That being said, KDE handles multiple monitors best of all DEs. I have to give credit for that.&lt;/p&gt;
+&lt;p&gt;All in all, KDE is pretty decent DE. If they fix this few things, I will move back to it immediately and use it for good.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="gnome-3"&gt;
+&lt;h3&gt;Gnome 3&lt;/h3&gt;
+&lt;div class="center-align container"&gt;
+&lt;img alt="" src="../static/uploads/gnome.png" /&gt;
+&lt;/div&gt;
+&lt;p&gt;My current setup. Fallback mode. Never really settled for shell. It's hard for a man working years and years under one desktop
+model, to switch to something new. I'm fairly satisfied with Gnome3.2 fallback, but, i'm here to bash the things I don't like:&lt;/p&gt;
+&lt;div class="section" id="looks"&gt;
+&lt;h4&gt;Looks&lt;/h4&gt;
+&lt;p&gt;Who thought that having a solid black bar for a panel was a good idea? Tint2 has better design out of the box. And, I was under
+the impression that Gnome had some good designers in their team. Well, compare Faenza icons to default gnome ones, and Adwaita to
+Zukitwo theme. You can do better than this Gnome. We care about the design too.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="gnome-settings"&gt;
+&lt;h4&gt;Gnome settings&lt;/h4&gt;
+&lt;p&gt;Take a look at KDE's settings manager. Now, back to yours. KDE is superior in this matter and you should learn from it.
+I assume it's laziness that made you throw everything in a registry-like structure (gconf/dconf), but you could move some
+important stuff in the settings manager. Now, if I want to change your mediocre theme for something better, I have to
+install third party software for that. Or try to remember &lt;em&gt;Was it dconf or gconf?&lt;/em&gt;; &lt;em&gt;Was it desktop/ or apps/&lt;/em&gt;. Seriously,
+work on this. And don't even get me started on the screen-saver thing.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="plain-wrong-stuff"&gt;
+&lt;h4&gt;Plain Wrong stuff&lt;/h4&gt;
+&lt;p&gt;Mutter in shell, metacity in fall-back. Did you stop to think that some people would want snap-to-edges in fall-back mode too?
+Do you punish us, fall-back users, and stick us with metacity? Metacity has an awful compositor. Out of the box, when minimizing
+the windows, you see this &lt;strong&gt;ugly&lt;/strong&gt; black border. So, the fix is, put metacity in low resources. How is rendering a full window
+minimizing vs. rendering a black border use lower resources? If you, however, turn that on, you see a wireframe each time you drag
+a window. So you gotta turn on some other thing (I can't remember which was it and I never can!). It's not documented properly,
+and I have to google it every time I install a new machine.&lt;/p&gt;
+&lt;p&gt;When I assign a primary monitor, that means I want that monitor to be PRIMARY! Not the one on the LEFT! KDE handles this better.
+Learn from it.&lt;/p&gt;
+&lt;p&gt;QT apps looked good in Gnome. Now, the look good, but they don't work good. Menus flying all around.&lt;/p&gt;
+&lt;p&gt;Theme manager.&lt;/p&gt;
+&lt;div class="section" id="bundle-bash"&gt;
+&lt;h5&gt;Bundle bash&lt;/h5&gt;
+&lt;p&gt;Brasero sucks hard. K3b is much much better. If you don't trust me, I will show you my bag full of failed DVDs.&lt;/p&gt;
+&lt;p&gt;Evince is good. But please... Bookmarks. A bit more functionality. You are trying to push Linux on a normal user.&lt;/p&gt;
+&lt;p&gt;Seriously... Theme manager.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="shell"&gt;
+&lt;h4&gt;Shell&lt;/h4&gt;
+&lt;p&gt;Oh, my &amp;quot;favorite&amp;quot;. I gotta say this - it works better than Unity. Not good enough.&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;It handles dual monitor poorly. Each time I open window preview, If I have a window on the other monitor, it's also shown in a preview.&lt;/li&gt;
+&lt;li&gt;Notifications are far from noticeable - fallback mode handles notifications better.&lt;/li&gt;
+&lt;li&gt;If you have Nautilus managing the desktop, you are in for headaches.&lt;/li&gt;
+&lt;li&gt;Again, black bar?!&lt;/li&gt;
+&lt;li&gt;How can I access Home folder without opening window preview?&lt;/li&gt;
+&lt;li&gt;Constant crashes!&lt;/li&gt;
+&lt;li&gt;Addons become incompatible fast.&lt;/li&gt;
+&lt;li&gt;Ati blob issues.&lt;/li&gt;
+&lt;li&gt;Wrong crash management. Shell crashes, I don't want to restart GDM. Show me ANYTHING. Just let me hit save before restarting X.&lt;/li&gt;
+&lt;li&gt;And the worst part - Recent files in menu. When you open up the menu, If you don't &lt;em&gt;magically&lt;/em&gt; disable (there's a hack for this) recent files, shell becomes awfully slow. Give me a checkbox where I can disable them.&lt;/li&gt;
+&lt;li&gt;THEME MANAGER!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;With all this said, Gnome has less impact on productivity, and I can live with these issues. But as soon as KDE fixes it's quirks, I'm moving to it.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="conclusion"&gt;
+&lt;h3&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;Now, don't focus on the negative stuff I wrote above. It's subjective. Both DE's are good and both flawed. For me, there's a handful of issues that keep me from moving to KDE, and I really hope, they will be fixed soon.&lt;/p&gt;
+&lt;p&gt;I salute the community for making things like KDE and Gnome. They rock and they should be praised for that. But,
+if we want Linux to be a choice of the normal (non-tech-savvy) user, you gotta get some things straight. Not everyone knows how
+to configure using gconf/dconf, or configure xautomation/xbindkeys. Make it perfect.&lt;/p&gt;
+&lt;p&gt;What ticks you about this Desktop Environments?&lt;/p&gt;
+&lt;p&gt;P.S. For the purists s/Linux/Gnu\/Linux/&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Sat, 29 Oct 2011 21:03:00 -0000</pubDate><guid>tag:brainacle.com,2011-10-29:kde-vs-gnome-a-subjective-view.html</guid><category>kde</category><category>gnome</category><category>lxde</category><category>xfce</category><category>desktop</category><category>linux</category><category>miscellaneous</category></item><item><title>HOW-TO: Use multiple WMD editors on a same page</title><link>http://brainacle.com/how-to-use-multiple-wmd-editors-on-a-same-page.html</link><description>&lt;p&gt;&lt;a class="reference external" href="http://code.google.com/p/wmd/"&gt;WMD&lt;/a&gt; editor resembles Stackoverflow's Markdown editor and it's probably one of
+the best WYSIWYG editors that work with Markdown as input. Because of that, it's widely used in
+Stackoverflow clones (i.e. &lt;a class="reference external" href="http://http://www.osqa.net/"&gt;OSQA&lt;/a&gt;). It's easy to install and use (just tie it to a
+textarea), it supports the mostly used features, provided by this type of editors, but has 1 major flaw:
+It doesn't support multiple textareas/multiple editors per page.&lt;/p&gt;
+&lt;p&gt;I've been working on an OSQA based platform recently when I stumbled across this issue. Since we didn't want to change
+the editor completely, I had to improvise.&lt;/p&gt;
+&lt;div class="section" id="javascript-to-the-rescue"&gt;
+&lt;h2&gt;Javascript to the rescue!&lt;/h2&gt;
+&lt;p&gt;Going through WMD's code, I found a way to re-initialize the editor with different textarea. When that goes through, the
+tool bar will be bound to the newly marked textarea and it will edit it's content. The fix is pretty simple actually
+(my example uses jQuery, but i'm sure you will understand what it does):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.wmd-textarea&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;focus&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(){&lt;/span&gt;
+            &lt;span class="c1"&gt;// Execute this when a textarea with a class .wmd-textarea gains focus&lt;/span&gt;
+
+    &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#wmd-button-bar&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;prependTo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;parent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;div&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt; &lt;span class="c1"&gt;// Prepend the toolbox to the parent div of the textarea&lt;/span&gt;
+
+    &lt;span class="nx"&gt;Attacklab&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;panels&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;input&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// Set WMD&amp;#39;s textarea input to this textarea&lt;/span&gt;
+    &lt;span class="nx"&gt;Attacklab&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;editor&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt; &lt;span class="c1"&gt;// Re-init the editor.&lt;/span&gt;
+&lt;span class="p"&gt;});&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;What this block does is hook a function to the &lt;em&gt;focus&lt;/em&gt; event of the textarea. Each time the textarea gains focus, it prepends
+the toolbox to the input's parent element, sets it as the input and reinitializes the WMD editor. That simple.&lt;/p&gt;
+&lt;p&gt;If you don't want the toolbox to move -- i.e. you want a toolbox above each textarea, just paste the toolbox HTML as desired,
+point &lt;em&gt;Attacklab.panels.buttonBar&lt;/em&gt; to the toolbox tied to the textarea with the focus on it, and re-init the editor:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.wmd-textarea&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;focus&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(){&lt;/span&gt;
+            &lt;span class="c1"&gt;// Execute this when a textarea with a class .wmd-textarea gains focus&lt;/span&gt;
+
+    &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;#wmd-button-bar&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;prependTo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;parent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;div&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt; &lt;span class="c1"&gt;// Prepend the toolbox to the parent div of the textarea&lt;/span&gt;
+    &lt;span class="nx"&gt;Attacklab&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;panels&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;buttonBar&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;parent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;div&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;find&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.wmd-toolbox&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// Set WMD&amp;#39;s textarea toolbox&lt;/span&gt;
+    &lt;span class="nx"&gt;Attacklab&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;panels&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;input&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// Set WMD&amp;#39;s textarea input to this textarea&lt;/span&gt;
+    &lt;span class="nx"&gt;Attacklab&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;editor&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt; &lt;span class="c1"&gt;// Re-init the editor.&lt;/span&gt;
+&lt;span class="p"&gt;});&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt; The above code blocks would work with this markup:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;&amp;lt;!-- HAVE A WMD EDITOR INITIALIZED SOMEWHERE IN YOUR HTML --&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;div&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;wmd-toolbox&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;&lt;span class="c"&gt;&amp;lt;!-- HERE GOES TOOLBOX HTML - ONLY FOR PRESENTATION - REMOVE ID&amp;#39;S. COPY IT FROM YOUR FULLY RENDERED PAGE SOURCE. --&amp;gt;&lt;/span&gt;&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;textarea&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;.wmd-textarea&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&amp;lt;/textarea&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;div&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;wmd-toolbox&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;&lt;span class="c"&gt;&amp;lt;!-- HERE GOES TOOLBOX HTML - ONLY FOR PRESENTATION - REMOVE ID&amp;#39;S. COPY IT FROM YOUR FULLY RENDERED PAGE SOURCE. --&amp;gt;&lt;/span&gt;&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+        &lt;span class="nt"&gt;&amp;lt;textarea&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;.wmd-textarea&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&amp;lt;/textarea&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Thu, 27 Oct 2011 15:30:00 -0000</pubDate><guid>tag:brainacle.com,2011-10-27:how-to-use-multiple-wmd-editors-on-a-same-page.html</guid><category>wmd</category><category>markdown</category><category>javascript</category><category>how-to</category><category>coding</category></item><item><title>Nautilus-minus extension</title><link>http://brainacle.com/nautilus-minus-extension.html</link><description>&lt;p&gt;&lt;strong&gt;nautilus-min.us&lt;/strong&gt; is an &lt;em&gt;extension&lt;/em&gt; for nautilus that makes uploading images
+and galleries to &lt;a class="reference external" href="http://min.us"&gt;http://min.us&lt;/a&gt; easier for the user. It adds an item in the
+context menu, so when you select one or more images, you click &amp;quot;Upload to min.us&amp;quot;,
+wait for a moment, and your default browser will open on the gallery page.&lt;/p&gt;
+&lt;div class="center-align container"&gt;
+&lt;img alt="" src="/static/uploads/minus-menu.png" /&gt;
+&lt;/div&gt;
+&lt;div class="section" id="installation"&gt;
+&lt;h2&gt;Installation&lt;/h2&gt;
+&lt;div class="section" id="automatic-installation"&gt;
+&lt;h3&gt;Automatic installation&lt;/h3&gt;
+&lt;p&gt;You can install the extension from &lt;a class="reference external" href="https://github.com/dekomote/nautilus-min.us/downloads"&gt;this deb file&lt;/a&gt;.
+It should take care of all dependencies etc. Remember to restart nautilus after installation:&lt;/p&gt;
+&lt;blockquote&gt;
+nautilus -q or
+killall nautilus&lt;/blockquote&gt;
+&lt;p&gt;If this method fails, try manual installation:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="manual-installation"&gt;
+&lt;h3&gt;Manual installation&lt;/h3&gt;
+&lt;p&gt;Get the tarball with the latest source &lt;a class="reference external" href="https://github.com/dekomote/nautilus-min.us/tarball/master"&gt;here&lt;/a&gt;,
+Extract it into $HOME/.nautilus/python-extensions/ . If there isn't such
+directory, create it with your user. Extract the tarball so that the script
+&lt;em&gt;upload_to_minus.py&lt;/em&gt; and the dir &lt;em&gt;minus_utils&lt;/em&gt; are directly in &lt;em&gt;python-extensions/&lt;/em&gt;
+and not subfolders.&lt;/p&gt;
+&lt;p&gt;The extension needs &lt;a class="reference external" href="http://projects.gnome.org/nautilus-python/"&gt;python-nautilus&lt;/a&gt;
+package. On Ubuntus or Debians, install it using apt:&lt;/p&gt;
+&lt;blockquote&gt;
+sudo apt-get install python-nautilus&lt;/blockquote&gt;
+&lt;p&gt;The extension notifies the user via libnotify (pynotify) which is present on Ubuntus
+and some Debians. If that's not there, it falls back to zenity, which is in
+standard gnome installation. Try to get at least one of these packages so you
+can be notified of eventual errors/ updates.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="future"&gt;
+&lt;h2&gt;Future&lt;/h2&gt;
+&lt;p&gt;I would love to hear some comments, critique, feature requests etc. You can fork it,
+request pulls and comment on &lt;a class="reference external" href="https://github.com/dekomote/nautilus-min.us/"&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Mon, 14 Feb 2011 19:01:00 -0000</pubDate><guid>tag:brainacle.com,2011-02-14:nautilus-minus-extension.html</guid><category>linux</category><category>coding</category><category>python</category><category>gnome</category><category>nautilus</category></item><item><title>How to write vim plugins with python</title><link>http://brainacle.com/how-to-write-vim-plugins-with-python.html</link><description>&lt;p&gt;I'm not going to dive into how good or extendible Vim is. If you are reading this
+article, you probably know that. The thing that makes Vim so good, is the
+scripting environment behind it called VimL. Using this scripting language,
+you can write any functionality/plugin you need for Vim. Each plugin you use
+is written in this language. Here's the best part. You only need very little
+knowledge of VimL to be able to write plugins, if you know Python (or Ruby).&lt;/p&gt;
+&lt;div class="section" id="what-s-a-vim-plugin-anyway"&gt;
+&lt;h2&gt;What's a vim plugin anyway&lt;/h2&gt;
+&lt;p&gt;A Vim plugin is a .vim script that defines functions, mappings, syntax rules,
+commands that may, or may
+not, manipulate the windows, buffers, lines. It is a complete piece of code with
+some specific functionality. Usually, a plugin consists of several functions
+mappings command definitions and event hooks. When writing vim plugins with Python, often, everything
+outside the functions is written in VimL. But those are vim commands and they
+can be learned fast. In fact, VimL can be learned fast, but using python gives
+so much flexibility. Think about using urllib/httplib/simplejson for accessing
+some web service that helps editing in Vim. This is why most of the plugins that
+work with web services are usually done in VimL+Python.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="any-prerequisites"&gt;
+&lt;h2&gt;Any prerequisites?&lt;/h2&gt;
+&lt;p&gt;You must have vim compiled with +python support. You can check that using the
+command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;vim --version | grep +python
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Vim package in Ubuntu and it's derivatives comes with +python support.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="to-work-vimmit-vim"&gt;
+&lt;h2&gt;To Work - Vimmit.vim&lt;/h2&gt;
+&lt;p&gt;What's better than starting with a simple example? This is a plugin that,
+when called, will retrieve the homepage of &lt;a class="reference external" href="http://reddit.com"&gt;Reddit&lt;/a&gt;
+and will display it in the current buffer.&lt;/p&gt;
+&lt;p&gt;Start by opening &amp;quot;vimmit.vim&amp;quot; file (in vim). Since we are writing python code,
+its good to check if Vim supports Python:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;!&lt;/span&gt;has&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;python&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    echo &lt;span class="s2"&gt;&amp;quot;Error: Required vim compiled with +python&amp;quot;&lt;/span&gt;
+    &lt;span class="k"&gt;finish&lt;/span&gt;
+&lt;span class="k"&gt;endif&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This piece is writen in VimL. It's best if we stick to VimL for things like this,
+mappings and event hooks. This function will check if Vim has python support or
+it will end the script with an error message.&lt;/p&gt;
+&lt;p&gt;We continue with the main function Reddit(). This is where we use Python and do
+the main functionality:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="s"&gt;&amp;quot; Vim comments start with a double quote.&lt;/span&gt;
+&lt;span class="s"&gt;&amp;quot; Function definition is VimL. We can mix VimL and Python in&lt;/span&gt;
+&lt;span class="s"&gt;&amp;quot; function definition.&lt;/span&gt;
+&lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="err"&gt;!&lt;/span&gt; &lt;span class="n"&gt;Reddit&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="s"&gt;&amp;quot; We start the python code like the next line.&lt;/span&gt;
+
+&lt;span class="n"&gt;python&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;EOF&lt;/span&gt;
+&lt;span class="c"&gt;# the vim module contains everything we need to interface with vim from&lt;/span&gt;
+&lt;span class="c"&gt;# python. We need urllib2 for the web service consumer.&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="nn"&gt;urllib2&lt;/span&gt;
+&lt;span class="c"&gt;# we need json for parsing the response&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;json&lt;/span&gt;
+
+&lt;span class="c"&gt;# we define a timeout that we&amp;#39;ll use in the API call. We don&amp;#39;t want&lt;/span&gt;
+&lt;span class="c"&gt;# users to wait much.&lt;/span&gt;
+&lt;span class="n"&gt;TIMEOUT&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;20&lt;/span&gt;
+&lt;span class="n"&gt;URL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;http://reddit.com/.json&amp;quot;&lt;/span&gt;
+
+&lt;span class="k"&gt;try&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="c"&gt;# Get the posts and parse the json response&lt;/span&gt;
+    &lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;urllib2&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;urlopen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;URL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="bp"&gt;None&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;TIMEOUT&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;json_response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;loads&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="n"&gt;posts&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;json_response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;data&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;children&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="c"&gt;# vim.current.buffer is the current buffer. It&amp;#39;s list-like object.&lt;/span&gt;
+    &lt;span class="c"&gt;# each line is an item in the list. We can loop through them delete&lt;/span&gt;
+    &lt;span class="c"&gt;# them, alter them etc.&lt;/span&gt;
+    &lt;span class="c"&gt;# Here we delete all lines in the current buffer&lt;/span&gt;
+    &lt;span class="k"&gt;del&lt;/span&gt; &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;current&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;[:]&lt;/span&gt;
+
+    &lt;span class="c"&gt;# Here we append some lines above. Aesthetics.&lt;/span&gt;
+    &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;current&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;-&amp;quot;&lt;/span&gt;
+
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;posts&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="c"&gt;# In the next few lines, we get the post details&lt;/span&gt;
+        &lt;span class="n"&gt;post_data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;data&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;{})&lt;/span&gt;
+        &lt;span class="n"&gt;up&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;ups&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;down&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;downs&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;title&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;title&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;NO TITLE&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;utf-8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;score&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;score&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;permalink&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;permalink&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;utf-8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;url&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;utf-8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;comments&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;post_data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;num_comments&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+        &lt;span class="c"&gt;# And here we append line by line to the buffer.&lt;/span&gt;
+        &lt;span class="c"&gt;# First the upvotes&lt;/span&gt;
+        &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;current&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;↑ &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="n"&gt;up&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="c"&gt;# Then the title and the url&lt;/span&gt;
+        &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;current&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;    &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt; [&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt;]&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;,))&lt;/span&gt;
+        &lt;span class="c"&gt;# Then the downvotes and number of comments&lt;/span&gt;
+        &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;current&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;↓ &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt;    | comments: &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt; [&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt;]&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;down&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;comments&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;permalink&lt;/span&gt;&lt;span class="p"&gt;,))&lt;/span&gt;
+        &lt;span class="c"&gt;# And last we append some &amp;quot;-&amp;quot; for visual appeal.&lt;/span&gt;
+        &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;current&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;-&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;except&lt;/span&gt; &lt;span class="ne"&gt;Exception&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;
+
+&lt;span class="n"&gt;EOF&lt;/span&gt;
+&lt;span class="s"&gt;&amp;quot; Here the python code is closed. We can continue writing VimL or python again.&lt;/span&gt;
+&lt;span class="n"&gt;endfunction&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Save the file, source it in vim (:source vimmit.vim) and:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;:call Reddit&lt;span class="o"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now, the way we call the function is not so elegant. So we define a command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;command&lt;span class="p"&gt;!&lt;/span&gt; &lt;span class="p"&gt;-&lt;/span&gt;nargs&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt; Reddit &lt;span class="k"&gt;call&lt;/span&gt; Reddit&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We define the command :Reddit to call the function. After adding this, open a
+new bufer and do :Reddit . Home page will be loaded in the buffer. The -nargs
+argument states how many arguments the command will take.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="function-arguments-eval-and-command"&gt;
+&lt;h2&gt;Function Arguments, Eval and Command&lt;/h2&gt;
+&lt;p&gt;Q: How does one access functional arguments?&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;function&lt;/span&gt;&lt;span class="p"&gt;!&lt;/span&gt; SomeName&lt;span class="p"&gt;(&lt;/span&gt;arg1&lt;span class="p"&gt;,&lt;/span&gt; arg2&lt;span class="p"&gt;,&lt;/span&gt; arg3&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="c"&gt;    &amp;quot; Get the first argument by name in VimL&lt;/span&gt;
+    &lt;span class="k"&gt;let&lt;/span&gt; firstarg&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="k"&gt;a&lt;/span&gt;:arg1
+
+&lt;span class="c"&gt;    &amp;quot; Get the second argument by position in Viml&lt;/span&gt;
+    &lt;span class="k"&gt;let&lt;/span&gt; secondarg&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="k"&gt;a&lt;/span&gt;:&lt;span class="m"&gt;1&lt;/span&gt;
+
+&lt;span class="c"&gt;    &amp;quot; Get the arguments in python&lt;/span&gt;
+
+    python &lt;span class="p"&gt;&amp;lt;&amp;lt;&lt;/span&gt; EOF
+    import &lt;span class="k"&gt;vim&lt;/span&gt;
+
+    first_argument &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;vim&lt;/span&gt;.eval&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;a:arg1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; #or &lt;span class="k"&gt;vim&lt;/span&gt;.eval&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;a:0&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    second_argument &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;vim&lt;/span&gt;.eval&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;a:arg2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; #or &lt;span class="k"&gt;vim&lt;/span&gt;.eval&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;a:1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;You can define a function with arbitrary number of arguments by putting &amp;quot;...&amp;quot;
+instead of argument names. You can access these arguments only by position,
+and you can mix them with named arguments (arg1, arg2, ...)&lt;/p&gt;
+&lt;p&gt;Q: How can I call Vim commands from Python?&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;vim&lt;/span&gt;.command&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;[vim-command-here]&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Q: How to define global variables and access them in VimL and Python?&lt;/p&gt;
+&lt;p&gt;Global vars are prefixed with g:. If you want to define one in your script,
+best thing to do is check if it exists and if doesn't define it and assign some
+default value to it:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;!&lt;/span&gt;exists&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;g:reddit_apicall_timeout&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;let&lt;/span&gt; &lt;span class="k"&gt;g&lt;/span&gt;:reddit_apicall_timeout&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="m"&gt;40&lt;/span&gt;
+&lt;span class="k"&gt;endif&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;You can access it from python using the vim module:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;TIMEOUT&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;vim&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;eval&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;g:reddit_apicall_timeout&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;If you want to override this setting, you can write:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;let&lt;/span&gt; &lt;span class="k"&gt;g&lt;/span&gt;:reddit_apicall_timeout&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="m"&gt;60&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;in .vimrc .&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="additional-notes"&gt;
+&lt;h2&gt;Additional Notes&lt;/h2&gt;
+&lt;p&gt;VimL is pretty easy once you try it. Remember that print works and
+everything you can do with python, you can do in here. &lt;a class="reference external" href="http://vimdoc.sourceforge.net/htmldoc/if_pyth.html#python-vim"&gt;Here&lt;/a&gt;
+you can find the documentation for the vim python module. Vimdoc is the possibly
+the only resource you will need when writing vim plugins.&lt;/p&gt;
+&lt;p&gt;You can also check this &lt;a class="reference external" href="https://www.ibm.com/developerworks/aix/library/au-vimplugin/"&gt;IBM developerWorks article&lt;/a&gt; .&lt;/p&gt;
+&lt;p&gt;Now, try to extend &amp;quot;vimmit.vim&amp;quot; so the user is able to choose a subreddit (as a
+first functional argument).&lt;/p&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Thu, 03 Feb 2011 14:58:00 -0000</pubDate><guid>tag:brainacle.com,2011-02-03:how-to-write-vim-plugins-with-python.html</guid><category>python</category><category>plugin</category><category>vim</category><category>coding</category></item><item><title>W3cValidate.vim</title><link>http://brainacle.com/w3cvalidatevim.html</link><description>&lt;p&gt;W3cValidate.vim is a plugin that enables buffer/url validation using the &lt;a class="reference external" href="http://validator.w3.org"&gt;W3 Validator&lt;/a&gt; API.&lt;/p&gt;
+&lt;div class="section" id="usage"&gt;
+&lt;h2&gt;Usage&lt;/h2&gt;
+&lt;p&gt;Copy w3cvalidate.vim file inside plugin directory, source it or restart Vim. Use&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;:W3cValidate to validate the current buffer&lt;/p&gt;
+&lt;p&gt;:W3cValidate &amp;quot;[url_here]&amp;quot; to validate a hosted page&lt;/p&gt;
+&lt;p&gt;:W3cValidateDT &amp;quot;[doctype]&amp;quot; to validate the buffer using the [doctype] override. Make sure the doctype is a valid doctype&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The validator service url can be changed if you run an instance of it localy by setting  g:w3_validator_url  in .vimrc&lt;/p&gt;
+&lt;p&gt;The script has API timeout default to 20 seconds. You can change it by setting  g:w3_apicall_timeout  in .vimrc&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="source"&gt;
+&lt;h2&gt;Source&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="https://bitbucket.org/dekomote/w3cvalidate.vim"&gt;Bitbucket&lt;/a&gt;
+&lt;a class="reference external" href="https://github.com/dekomote/w3cvalidate.vim"&gt;GitHub&lt;/a&gt;
+&lt;a class="reference external" href="http://www.vim.org/scripts/script.php?script_id=3416"&gt;Vim Scripts&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Sun, 23 Jan 2011 00:55:00 -0000</pubDate><guid>tag:brainacle.com,2011-01-23:w3cvalidatevim.html</guid><category>vim</category><category>plugin</category><category>coding</category></item><item><title>Generate960.py</title><link>http://brainacle.com/generate960py.html</link><description>&lt;p&gt;Command line utility script for generating custom &lt;a class="reference external" href="http://960.gs"&gt;960gs&lt;/a&gt; grids (css). It can generate grids will custom width, column number and gutter width. Outputs to file or stdout.&lt;/p&gt;
+&lt;div class="section" id="usage"&gt;
+&lt;h2&gt;Usage&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;python generate960.py
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="optional-arguments"&gt;
+&lt;h2&gt;Optional Arguments&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;table class="docutils option-list" frame="void" rules="none"&gt;
+&lt;col class="option" /&gt;
+&lt;col class="description" /&gt;
+&lt;tbody valign="top"&gt;
+&lt;tr&gt;&lt;td class="option-group"&gt;
+&lt;kbd&gt;&lt;span class="option"&gt;-h&lt;/span&gt;, &lt;span class="option"&gt;--help&lt;/span&gt;&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;show help message and exit&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td class="option-group" colspan="2"&gt;
+&lt;kbd&gt;&lt;span class="option"&gt;-w &lt;var&gt;WIDTH&lt;/var&gt;&lt;/span&gt;, &lt;span class="option"&gt;--width &lt;var&gt;WIDTH&lt;/var&gt;&lt;/span&gt;&lt;/kbd&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;td&gt;Content width in px. Defaults to 960px.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td class="option-group" colspan="2"&gt;
+&lt;kbd&gt;&lt;span class="option"&gt;-c &lt;var&gt;COLUMNS&lt;/var&gt;&lt;/span&gt;, &lt;span class="option"&gt;--columns &lt;var&gt;COLUMNS&lt;/var&gt;&lt;/span&gt;&lt;/kbd&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;td&gt;Number of columns. Defaults to 12.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td class="option-group" colspan="2"&gt;
+&lt;kbd&gt;&lt;span class="option"&gt;-g &lt;var&gt;GUTTER&lt;/var&gt;&lt;/span&gt;, &lt;span class="option"&gt;--gutter &lt;var&gt;GUTTER&lt;/var&gt;&lt;/span&gt;&lt;/kbd&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;td&gt;Gutter width in px. Defaults to 20px.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td class="option-group" colspan="2"&gt;
+&lt;kbd&gt;&lt;span class="option"&gt;-f &lt;var&gt;FILE&lt;/var&gt;&lt;/span&gt;, &lt;span class="option"&gt;--file &lt;var&gt;FILE&lt;/var&gt;&lt;/span&gt;&lt;/kbd&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;td&gt;Name of the file to be saved. If this is not specified the css will be printed to stdout&lt;/td&gt;&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;To generate 1024 grid with 15px gutters and 10 columns:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;python generate960.py -w 1024 -c 10 -g 15
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="requirements"&gt;
+&lt;h2&gt;Requirements&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="http://jinja.pocoo.org/"&gt;Jinja2&lt;/a&gt; and &lt;a class="reference external" href="http://code.google.com/p/argparse/"&gt;Argparse&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="source"&gt;
+&lt;h2&gt;Source&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="https://bitbucket.org/dekomote/generate960.py"&gt;Bitbucket&lt;/a&gt;
+&lt;a class="reference external" href="https://github.com/dekomote/generate960.py"&gt;GitHub&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Sat, 15 Jan 2011 12:06:00 -0000</pubDate><guid>tag:brainacle.com,2011-01-15:generate960py.html</guid><category>python</category><category>960gs</category><category>grids</category><category>design</category></item><item><title>How to easily enable r600g Gallium3D in Ubuntu and Ubuntu derivatives for radeon</title><link>http://brainacle.com/how-to-easily-enable-r600g-gallium3d-in-ubuntu-and-ubuntu-derivatives-for-radeon.html</link><description>&lt;p&gt;Gallium3D is a software library for 3D graphics device drivers developed by VMware. It's the next big thing in linux graphic drivers world. At the moment, it drives the old (sub r300) ATI graphic cards
+and it is in a very active development for NVidia and newer ATI(AMD) hardware. You can read more about Gallium &lt;a class="reference external" href="http://wiki.freedesktop.org/wiki/Software/gallium"&gt;here&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Last three weeks I became obsessed with the open source radeon driver. There is a lot of buzz going on there, a lot of optimizations and development (much expected in kernel 2.6.38) which is pretty much covered on the forums of
+&lt;a class="reference external" href="http://phoronix.com"&gt;Phoronix&lt;/a&gt;. I decided to take a spin on new drivers, the development versions of &lt;a class="reference external" href="http://www.mesa3d.org/"&gt;Mesa&lt;/a&gt; and a newer kernel 2.6.37 from the
+&lt;a class="reference external" href="http://kernel.ubuntu.com/~kernel-ppa/mainline/"&gt;Ubuntu mainline builds&lt;/a&gt;. I have an R700 based ATI HD4650. The gallium driver for this card is r600g. It shows many improvements and
+optimizations but it's still in development cycle, unlike the driver for older cards r300g which is pretty much the default driver in Meerkat. Because of it's status, r600g is tricky to install
+especially if you aren't comfortable with building git versions with compiler switches that enable gallium in mesa. But, thanks to the guys at &lt;a class="reference external" href="https://launchpad.net/~xorg-edgers/+archive/ppa"&gt;Xorg-edgers PPA&lt;/a&gt;
+the simple mortals can have gallium on Ubuntu as easy as installing a video player.&lt;/p&gt;
+&lt;p&gt;Xorg-edgers PPA states that if you install the packages from the main PPA (ppa:xorg-edgers/ppa) and add Option &amp;quot;ForceGallium&amp;quot; &amp;quot;true&amp;quot; in xorg.conf, r600g will be used.
+However, if this doesn't work with the latest updates, check &lt;a class="reference external" href="https://launchpad.net/~xorg-edgers/+archive/radeon"&gt;Xorg-edgers/radeon&lt;/a&gt;. Packages from this PPA enable gallium
+by default. The only thing you need to do is add it:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo apt-add-repository ppa:xorg-edgers/radeon
+sudo apt-get update &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; sudo apt-get upgrade
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now if you installed the driver/gl stack from /radeon you should delete xorg.conf if you don't have any monitor specific lines there. If you used the main ppa, you should add that option &amp;quot;ForceGallium&amp;quot; inside the device section and &lt;em&gt;voila&lt;/em&gt;, you have r600g driver running.&lt;/p&gt;
+&lt;p&gt;I tested this with stock kernel 2.6.35 and updated 2.6.37 and it works pretty good. There is huge performance gain which I felt playing Penumbra Overture. On high settings, 1920x1200 resolution, the game is flying. Video is smooth, compiz works great and games play smoother.
+The 2.6.38 kernel brings even more good news for radeon users. Massive performance gain with the &lt;a class="reference external" href="http://www.phoronix.com/scan.php?page=news_item&amp;amp;px=OTAwNA"&gt;PageFlipping&lt;/a&gt; and the CollorTilling implementations in the radeon driver give it a big boost.
+We just have to wait for a more stable version of the kernel. The kernel is at rc2 stage at the moment of writing.&lt;/p&gt;
+&lt;p&gt;Anyway, Kudos to the open source driver developers, better make that to ALL open source developers involved in Linux.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; This post is a general guideline for installing the
+Gallium3D radeon driver for linux practiced by the author. The author
+will not accept any liability for any damages/data-loss caused using
+the technique described above.&lt;/p&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Wed, 05 Jan 2011 01:47:00 -0000</pubDate><guid>tag:brainacle.com,2011-01-05:how-to-easily-enable-r600g-gallium3d-in-ubuntu-and-ubuntu-derivatives-for-radeon.html</guid><category>linux</category><category>ati</category><category>drivers</category></item><item><title>PyFaceDetect</title><link>http://brainacle.com/pyfacedetect.html</link><description>&lt;p&gt;PyFaceDetect is a thin wrapper around &lt;a class="reference external" href="http://opencv.willowgarage.com"&gt;OpenCV&lt;/a&gt; for detection and marking faces in images.&lt;/p&gt;
+&lt;p&gt;The module can be used as an API or in console for testing purposes. For usage and options:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;python pyfacedetect.py -h
+&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="section" id="sample-input"&gt;
+&lt;h2&gt;Sample input&lt;/h2&gt;
+&lt;img alt="" src="http://i.imgur.com/5Lq4O.jpg" /&gt;
+&lt;/div&gt;
+&lt;div class="section" id="sample-output"&gt;
+&lt;h2&gt;Sample output&lt;/h2&gt;
+&lt;img alt="" src="http://i.imgur.com/56aTg.jpg" /&gt;
+&lt;p&gt;The module consists of 2 classes:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;OcvDetector that wraps OpenCV Api for face detection and can be used bare
+without the helper methods for loading images, marking faces, or getting
+human friendly output&lt;/p&gt;
+&lt;p&gt;FaceDetect - full feature class that extends OcvDetector and adds helper
+methods for loading/marking/outputing/saving images and dumping faces in
+json.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;You can enable scaning for profiles for quantity of faces by setting
+SCAN_FOR_PROFILES to True. That, however will give some overlapping rectangles.&lt;/p&gt;
+&lt;p&gt;Try and tweak MIN_FACE_SIZE, HAAR_SCALE and MIN_NEIGHBORS so you can change the
+accuracy of the detection. For more info, read
+&lt;a class="reference external" href="http://opencv.willowgarage.com/documentation/python/objdetect_cascade_classification.html"&gt;http://opencv.willowgarage.com/documentation/python/objdetect_cascade_classification.html&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;For speed, all images above 1000width or 1000h are scaled to 1000w or 1000h max.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="api-usage"&gt;
+&lt;h2&gt;API Usage&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;face_detect&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;new&lt;/span&gt; &lt;span class="n"&gt;FaceDetect&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;image_from_file&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;file_name&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c"&gt;#load from file&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;image_from_input&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;input_id&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c"&gt;#load 1 frame from video input&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;detect_faces&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="c"&gt;#stores faces in local list&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;overlay_image&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;rgb_border&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;width&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="c"&gt;#overlays original image with rectangles around detected faces.&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to_json&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="c"&gt;#returns json string with faces rectangles&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;output_image&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="c"&gt;#shows image in window&lt;/span&gt;
+
+&lt;span class="n"&gt;face_detect&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;save_image&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;file_name&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="c"&gt;#saves overlaid image to file_name&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="dependencies"&gt;
+&lt;h2&gt;Dependencies&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="http://opencv.willowgarage.com/wiki/"&gt;OpenCV 2.1+&lt;/a&gt; and Argparse&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="source"&gt;
+&lt;h2&gt;Source&lt;/h2&gt;
+&lt;p&gt;&lt;a class="reference external" href="https://bitbucket.org/dekomote/pyfacedetect"&gt;Bitbucket&lt;/a&gt;
+&lt;a class="reference external" href="https://github.com/dekomote/pyfacedetect"&gt;GitHub&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Tue, 28 Dec 2010 18:00:00 -0000</pubDate><guid>tag:brainacle.com,2010-12-28:pyfacedetect.html</guid><category>python</category><category>opencv</category><category>face-detection</category></item><item><title>Calculating image entropy with Python, How and Why?</title><link>http://brainacle.com/calculating-image-entropy-with-python-how-and-why.html</link><description>&lt;div class="section" id="the-why"&gt;
+&lt;h2&gt;The Why?&lt;/h2&gt;
+&lt;p&gt;Lets say you are developing a video portal, kinda like youtube/vimeo
+and you want to have an automated way of making thumbnails. Since
+video manipulation in python is a bit tricky, you might as well make
+the thumbnails with &lt;strong&gt;ffmpeg&lt;/strong&gt; every [n] seconds. You need 10 thumbnails
+for each video, and you want those thumbnails to show parts of it.&lt;/p&gt;
+&lt;p&gt;If you leave it random, you might end up having thumbnails that show
+a black scene or some scene that barely shows anything. Using the
+image
+entropy, you can sort out the thumbnails based on the &lt;a class="reference external" href="http://www.astro.cornell.edu/research/projects/compression/entropy.html"&gt;&amp;quot;business&amp;quot;&lt;/a&gt; of
+the scene they depict. The technique can be implemented as follows:&lt;/p&gt;
+&lt;ol class="arabic simple"&gt;
+&lt;li&gt;Generate n&amp;gt;[thumbnails_needed] thumbnails&lt;/li&gt;
+&lt;li&gt;Calculate the image entropy for each of them&lt;/li&gt;
+&lt;li&gt;Sort them by their entropy&lt;/li&gt;
+&lt;li&gt;Use the first [thumbnails_needed] thumbnails&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class="section" id="the-how"&gt;
+&lt;h2&gt;The How?&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Entropy&lt;/strong&gt; H of a sampled signal of length N samples is calculated:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;H(X) = -1 * sum_1_to_N ( p_i log( p_i ) )
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;p_i is the probability of the i-th sample of the signal and can be calculated:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;p_i = Histogram(sample)[i]/Length(Histogram(sample))
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;All we need to do is to get the histogram list and we can calculate
+the entropy.&lt;/p&gt;
+&lt;p&gt;On a first sight, this sounds like a complex mathematical problem. And
+it is, but we will make a little shortcut. We will use the &lt;a class="reference external" href="http://www.pythonware.com/products/pil/"&gt;Python
+imaging library&lt;/a&gt; or &lt;strong&gt;PIL&lt;/strong&gt;. This package is de facto standard package for
+image manipulation in Python. It is one of the first packages I
+install when preparing my development environment (before making
+virtualenvs). PIL provides a method for calculating the histogram of
+the image and solves most of our problems. The function for
+calculating the entropy looks like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;Image&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;math&lt;/span&gt;
+
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;image_entropy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;img&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot;calculate the entropy of an image&amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;histogram&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;img&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;histogram&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;histogram_length&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;sum&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;histogram&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="n"&gt;samples_probability&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;float&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;histogram_length&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;h&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;histogram&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;sum&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;math&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;log&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;samples_probability&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+
+&lt;span class="n"&gt;img&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Image&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;headshot.jpg&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;image_entropy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;img&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;As you can see, PIL’s method for calculating the histogram really
+simplifies things and makes the functions seem slim and simple. All
+its left is iterating through set of thumbnails, calculating the
+entropy and sorting them.&lt;/p&gt;
+&lt;p&gt;Remember: &lt;strong&gt;Bigger entropy means more
+noise/liveliness/color/business.*&lt;/strong&gt; You will usually need the thumbnails
+with greater entropy.&lt;/p&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Mon, 04 Oct 2010 12:20:00 -0000</pubDate><guid>tag:brainacle.com,2010-10-04:calculating-image-entropy-with-python-how-and-why.html</guid><category>development</category><category>entropy</category><category>image</category><category>pil</category><category>python</category></item><item><title>Install Proprietary ATI 10.8 drivers on Ubuntu Lucid / Linux Mint</title><link>http://brainacle.com/install-proprietary-ati-108-drivers-on-ubuntu-lucid-linux-mint.html</link><description>&lt;p&gt;I will digress a bit from the theme of the blog, but seeing a lot of
+people having issues with installing the ATI drivers on Ubuntu, I
+decided to put my thoughts and experience with it here.&lt;/p&gt;
+&lt;p&gt;I have experimented with the drivers quite a bit. I own Sapphire
+Radeon HD 4650, and always try out games on Wine(i wish all of them
+worked in Gnu/Linux) which is the reason I need updated drivers on my
+rig. Two weeks ago, AMD(then ATI) updated the drivers to 10.8
+version. By their claims, these drivers introduce some performance
+gain, bugfixes and general stability. I installed the driver 30
+minutes before writing this post and it actually works pretty good.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Now for the technical part:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;What you need is a rig with AMD graphic card powered by a &lt;a class="reference external" href="http://linuxmint.com/"&gt;Linux Mint&lt;/a&gt;
+or &lt;a class="reference external" href="http://ubuntu.org/"&gt;Ubuntu Lucid distro&lt;/a&gt; with installed
+build-essential. Driver (which
+in fact is shell script) can be downloaded &lt;a class="reference external" href="http://support.amd.com/us/gpudownload/Pages/index.aspx"&gt;Here&lt;/a&gt;. The script is called
+ati-driver-installer-[version]-[CPU architecture].run. Download it to
+new empty folder - lets call it ati in home folder.&lt;/p&gt;
+&lt;p&gt;Now we have the driver and we can start with installation. Before we
+actually commence the installation, we have to purge/remove the old
+ati driver from the system. You should try these commands to remove
+it:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo apt-get purge fglrx
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;or&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo sh /usr/share/fglrx/fglrx-uninstall.sh
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;After the removing is done, reboot the PC. You could be asked to turn
+the graphics to low details (safe mode). Do that. Next, open a
+terminal and navigate to the folder with the driver.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; ~/ati/
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Add permissions for execution to the script:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;chmod +x ati-driver-installer-&lt;span class="o"&gt;[&lt;/span&gt;version&lt;span class="o"&gt;]&lt;/span&gt;-&lt;span class="o"&gt;[&lt;/span&gt;CPU architecture&lt;span class="o"&gt;]&lt;/span&gt;.run
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Generate distro-specific packages(for lucid or mint 9):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo ./ati-driver-installer-&lt;span class="o"&gt;[&lt;/span&gt;version&lt;span class="o"&gt;]&lt;/span&gt;-&lt;span class="o"&gt;[&lt;/span&gt;CPU architecture&lt;span class="o"&gt;]&lt;/span&gt;.run –buildpkg Ubuntu/lucid
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;or list all available distro builds:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo ./ati-driver-installer-&lt;span class="o"&gt;[&lt;/span&gt;version&lt;span class="o"&gt;]&lt;/span&gt;-&lt;span class="o"&gt;[&lt;/span&gt;CPU architecture&lt;span class="o"&gt;]&lt;/span&gt;.run –listpkg
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;After this operation (if everything went ok) you will have several
+.deb packages. Install them with the next command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo dpkg -i *.deb
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The drivers are installed. If this is your first ATI driver
+installation, invoke next command to make the initial config:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo aticonfig –initial
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Reboot the PC, and you’ll have the drivers installed. If you have any
+problems, refer to the Installation Instructions on the driver’s
+download page.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; This post is a general guideline for installing the
+proprietary ati drivers for linux practiced by the author. The author
+will not accept any liability for any damages/data-loss caused using
+the technique described above.&lt;/p&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Thu, 09 Sep 2010 20:55:00 -0000</pubDate><guid>tag:brainacle.com,2010-09-09:install-proprietary-ati-108-drivers-on-ubuntu-lucid-linux-mint.html</guid><category>linux</category><category>ati</category><category>drivers</category></item><item><title>JqCarousel Three-D</title><link>http://brainacle.com/jqcarousel-three-d.html</link><description>&lt;p&gt;This plugin was coded to prove a point. We saw another similar plugin like this,
+but it was only for sale with obfuscated code, so I decided to write it and opensource it.
+It doesn't have the limited functionality and the custom implementation of the paid ones,
+it is easy to implement and highly customizable. Works with images and other HTML containers.&lt;/p&gt;
+&lt;p&gt;&lt;a class="reference external" href="/static/uploads/jqcarousel3d/index.html"&gt;Here&lt;/a&gt; you can check out a demo of
+the carousel. The JS embed code is:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;#carouselthreed&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;carousel3D&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt;
+    &lt;span class="nx"&gt;speed&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;900&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nx"&gt;perspectiveZoom&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;70&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nx"&gt;sideOffset&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nx"&gt;topOffset&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nx"&gt;secondaryOpacity&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;35&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nx"&gt;emClass&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;tdc-element&amp;#39;&lt;/span&gt;
+&lt;span class="p"&gt;})&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And here is the HTML:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nt"&gt;&amp;lt;div&lt;/span&gt; &lt;span class="na"&gt;id=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;carouselthreed&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;img&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;tdc-element&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;src=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;fly.jpg&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;img&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;tdc-element&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;src=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;gates.jpg&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;img&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;tdc-element&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;src=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;penguins.jpg&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The settings object attributes are:
+- speed - Speed of animation in milliseconds (default 350)
+- perspectiveZoom - Percentage of secondary element's sizes relative to primary element (default 80)
+- sideOffset - Offset of secondary elements (default 70)
+- topOffset - Offset from top of secondary elements (default 0)
+- secondaryOpacity - Opacity of secondary elements (default 0.8)
+- emClass - CSS class of elements that will rotate (images/dom) (default &amp;quot;tdc-element&amp;quot;)&lt;/p&gt;
+&lt;p&gt;Any of those attributes can be omitted and default values will be used.
+For reference, the second element in the container is taken, it is the
+central element and all other elements are resized relative to it.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;It works with unlimited number of elements.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a class="reference external" href="/static/uploads/jqcarousel3d/Carousel3D3.js"&gt;Download&lt;/a&gt; the plugin and get a
+fresh copy of &lt;a class="reference external" href="http://jquery.com/"&gt;JQuery&lt;/a&gt; and you're set.&lt;/p&gt;
+&lt;p&gt;Enjoy&lt;/p&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Wed, 27 Jan 2010 19:59:00 -0000</pubDate><guid>tag:brainacle.com,2010-01-27:jqcarousel-three-d.html</guid><category>javascript</category><category>jquery</category><category>plugin</category><category>ui</category></item><item><title>Livescape jQuery Live Landscape</title><link>http://brainacle.com/livescape-jquery-live-landscape.html</link><description>&lt;p&gt;The idea behind this plugin is to have some kind of landscape container that
+will contain objects moving inside of it e.g. sky with the clouds moving.
+The plugin is built simple, has simple implementation, it is very easy to
+use, yet very flexible. You only need the landscape image, the object images
+and one container.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nx"&gt;$&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;#livescape&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;livescape&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt;
+    &lt;span class="c1"&gt;//height of the landscape (can be omitted)&lt;/span&gt;
+    &lt;span class="nx"&gt;height&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;360px&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="c1"&gt;//width of the landscape (can be omitted)&lt;/span&gt;
+    &lt;span class="nx"&gt;width&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;1000px&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="c1"&gt;//background image (can be omitted)&lt;/span&gt;
+    &lt;span class="nx"&gt;background_image&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;img/bg.jpg&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Next define the objects that are moving:&lt;/span&gt;
+    &lt;span class="nx"&gt;objects&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+        &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="c1"&gt;//the positions are relative to the landscape&lt;/span&gt;
+            &lt;span class="c1"&gt;//if omitted, random assumed - same for duration&lt;/span&gt;
+
+            &lt;span class="c1"&gt;//x of start position&lt;/span&gt;
+            &lt;span class="nx"&gt;start_x&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;1700px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;//y of start position&lt;/span&gt;
+            &lt;span class="nx"&gt;start_y&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;190px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;//x of end position&lt;/span&gt;
+            &lt;span class="nx"&gt;end_x&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;-4000px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="c1"&gt;//y of end position&lt;/span&gt;
+            &lt;span class="nx"&gt;end_y&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;190px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;//image of the object (url)&lt;/span&gt;
+            &lt;span class="nx"&gt;image&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;img/car.png&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;// duration of the animation&lt;/span&gt;
+            &lt;span class="nx"&gt;duration&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;18000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;// the animation loops&lt;/span&gt;
+            &lt;span class="nx"&gt;loop&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;//the object is anchor&lt;/span&gt;
+            &lt;span class="nx"&gt;href&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;ThisisBatCountry.png&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;//pause in between loops in ms&lt;/span&gt;
+            &lt;span class="nx"&gt;pause&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="c1"&gt;//the objects fade in on start and out on end&lt;/span&gt;
+            &lt;span class="nx"&gt;fade&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;
+        &lt;span class="p"&gt;},&lt;/span&gt;
+        &lt;span class="c1"&gt;//another object&lt;/span&gt;
+        &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="nx"&gt;start_x&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;-250px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;start_y&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;5px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;end_x&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;1250px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;end_y&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;5px&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;duration&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;49000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;image&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;img/cloud1.png&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;loop&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nx"&gt;fade&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="p"&gt;})&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This is setup is for 2 objects. The implementation is pretty intuitive and i
+think you will get a hold of it very fast.&lt;/p&gt;
+&lt;div class="section" id="update"&gt;
+&lt;h2&gt;Update&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p class="first"&gt;The objects now turn towards the direction of movement using CSS3 rotation.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;dl class="first docutils"&gt;
+&lt;dt&gt;For every object you can define a random starting and ending range using the attrubutes:&lt;/dt&gt;
+&lt;dd&gt;&lt;ul class="first simple"&gt;
+&lt;li&gt;range_sx_min (start_x min range)&lt;/li&gt;
+&lt;li&gt;range_sx_max (start_x max range)&lt;/li&gt;
+&lt;li&gt;range_ex_min&lt;/li&gt;
+&lt;li&gt;range_ex_max&lt;/li&gt;
+&lt;li&gt;range_sy_min&lt;/li&gt;
+&lt;li&gt;range_sy_max&lt;/li&gt;
+&lt;li&gt;range_ey_min&lt;/li&gt;
+&lt;li&gt;range_ey_max&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p class="last"&gt;all these attributes can be omitted and random will be used.&lt;/p&gt;
+&lt;/dd&gt;
+&lt;/dl&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;The plugin is still beta and needs refactoring.&lt;/strong&gt; Nevertheless you will
+have access to an early access version.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="source-and-example"&gt;
+&lt;h2&gt;Source and example&lt;/h2&gt;
+&lt;p&gt;You can check this plugin in action &lt;a class="reference external" href="/static/uploads/livescape/index.html"&gt;here&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Get the &lt;a class="reference external" href="/static/uploads/livescape/jqLiveScape.js"&gt;source&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Dejan Noveski</dc:creator><pubDate>Tue, 15 Dec 2009 19:56:00 -0000</pubDate><guid>tag:brainacle.com,2009-12-15:livescape-jquery-live-landscape.html</guid><category>javascript</category><category>jquery</category><category>plugin</category><category>code</category><category>ui</category></item></channel></rss>
