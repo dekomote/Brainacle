@@ -39,7 +39,91 @@
         
         
         <aside id="featured" class="body"><article>
-                <h1 class="entry-title"><a href="http://brainacle.com/the-most-underrated-raspberry-pi-feature.html">The Most Underrated Raspberry Pi feature</a></h1> 
+                <h1 class="entry-title"><a href="http://brainacle.com/encrypting-files-with-pycrypto.html">Encrypting files with Pycrypto</a></h1> 
+                <footer class="post-info">
+                        <abbr class="published" title="2014-11-04T20:58:00">
+                                Tue 04 November 2014
+                        </abbr>
+
+                        <address class="vcard author">
+                                By <a class="url fn" href="#">Dejan Noveski</a>
+                        </address>
+                <p>In <a href="http://brainacle.com/category/Coding.html">Coding</a>. </p>
+<p>tags: <a href="http://brainacle.com/tag/python.html">python</a> <a href="http://brainacle.com/tag/coding.html">coding</a> <a href="http://brainacle.com/tag/crypto.html">crypto</a> <a href="http://brainacle.com/tag/encryption.html">encryption</a> <a href="http://brainacle.com/tag/pycrypto.html">pycrypto</a> </p></p>                </footer><!-- /.post-info -->
+                <p><a class="reference external" href="https://www.dlitz.net/software/pycrypto/">Pycrypto</a> is the python cryptography toolkit you'll ever need. It supports pretty much everything, it's
+rather fast and has an understandable interface and documentation. Cryptography, in itself, is rather complicated and hard to understand and implement,
+and so is the documentation on encrypting files with pycrypto (or pretty much any crypto toolkit/library in the world).</p>
+<p>Recently, I was tasked with writing a code that will encrypt files to be decrypted on a mobile platform - Android and iOS. Both of their documentations are
+lacking in that department. You can easily find a snippet so that you can encrypt and decrypt a file on the same device, but not something that will work
+cross-device/cross-platform. That's because some of the details of the encryption algorithms are not mentioned and those are crucial.</p>
+<div class="section" id="eli5-aes">
+<h2>ELI5 AES</h2>
+<p>AES is a block cypher. That means, it encrypts/decrypts in blocks of 128 bits. The key used for the [en|de]cryption is 128, 192 or 256 bits.
+So, this means that your data has to be divisible by 128bits and your key must be 128, 192 or 256 bits. Pretty tough to meet these requirements considering
+we're dealing with binary/text files that will be some random length? Well, that's where padding comes in.</p>
+<p>In order to make the file's length divisible by <strong>128b(16B)</strong> we have to pad it. The most used padding scheme is <a class="reference external" href="http://en.wikipedia.org/wiki/Padding_%28cryptography%29#PKCS7">PKCS7</a>
+Simply append n &lt; 16 bytes to the file with value n to meet the 16B block size. So, the workflow now would be, pad -&gt; encrypt -&gt; decrypt -&gt; unpad.</p>
+<p>There's one more thing - IV - Should also be 16B. It's a common practice to have this at random, prepend it to the file on every encryption. We'll assume a static IV now for the sake of
+simplicity. The documentations around the net don't mention the IV. Then, the crypto system creates it per device, and you'll be stuck wondering how you can
+decrypt on your phone but not your desktop.</p>
+</div>
+<div class="section" id="enter-aes256-cbc-pkcs7">
+<h2>Enter AES256/CBC/PKCS7</h2>
+<p>This is the cookie cutter scheme for encryption. It's supported by the mobile OS-es and libraries, it's even the default!</p>
+<p>Doing this with openssl is easy:</p>
+<div class="highlight"><pre><span class="c"># To Encrypt</span>
+openssl enc -aes-256-cbc -k LyoNIpj8nqg5tcukqmW3kJ7PIbHtfeHE -iv 0000000000000000 -in in_file -out out_file
+
+<span class="c"># To Decrypt</span>
+openssl enc -d -aes-256-cbc -k LyoNIpj8nqg5tcukqmW3kJ7PIbHtfeHE -iv 0000000000000000 -in in_file -out out_file
+</pre></div>
+<p>In this example, the key is set to <em>LyoNIpj8nqg5tcukqmW3kJ7PIbHtfeHE</em> <strong>(32B/256b)</strong> and the IV is set to 16B of zeroes. Openssl pads with PKCS7 by default.</p>
+<p>Now let's see the example with pycrypto. Assuming with have in_file and out_file already opened:</p>
+<div class="highlight"><pre><span class="c"># initialize the encryption</span>
+<span class="n">encryption_key</span> <span class="o">=</span> <span class="s">&quot;LyoNIpj8nqg5tcukqmW3kJ7PIbHtfeHE&quot;</span>
+<span class="n">iv</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">*</span> <span class="s">&#39;</span><span class="se">\x00</span><span class="s">&#39;</span>
+<span class="n">crypt</span> <span class="o">=</span> <span class="n">AES</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">encryption_key</span><span class="p">,</span> <span class="n">AES</span><span class="o">.</span><span class="n">MODE_CBC</span><span class="p">,</span> <span class="n">iv</span><span class="p">)</span>
+
+<span class="c"># keep chunk size large for speed but divisible by 16B</span>
+<span class="n">chunksize</span> <span class="o">=</span> <span class="mi">1024</span>
+
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">chunk</span> <span class="o">=</span> <span class="n">infile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunksize</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c"># it&#39;s an empty chunk. We don&#39;t need it.</span>
+        <span class="k">break</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">==</span> <span class="n">chunksize</span><span class="p">:</span>
+        <span class="c"># We&#39;ve read a full encryptable chunk with length divisible by 16B</span>
+        <span class="n">out_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">crypt</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">chunk</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># We&#39;ve read a chunk that&#39;s not divisible by 16B. We PCKS7 pad it.</span>
+        <span class="c"># First calculate how many bytes we&#39;ll need to pad it</span>
+        <span class="n">padding_bytes</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">%</span> <span class="n">AES</span><span class="o">.</span><span class="n">block_size</span>
+        <span class="c"># Next, create the padding sequence</span>
+        <span class="n">padding</span> <span class="o">=</span> <span class="n">StringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">padding_bytes</span><span class="p">):</span>
+            <span class="c"># If we&#39;re missing 4 bytes, the padding sequence would be 04 04 04 04 (hex). That&#39;s why the formatting.</span>
+            <span class="n">padding</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%02x</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">padding_bytes</span><span class="p">)</span>
+        <span class="n">padded_chunk</span> <span class="o">=</span> <span class="n">chunk</span> <span class="o">+</span> <span class="n">binascii</span><span class="o">.</span><span class="n">unhexlify</span><span class="p">(</span><span class="n">padding</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+        <span class="n">out_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">crypt</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">padded_chunk</span><span class="p">))</span>
+</pre></div>
+<p>That's it. This should be decryptable with openssl, android crypto, ios crypto library and any device. Just need to know the encryption scheme, the IV and the encryption key.
+If you really want to make something secure, I suggest you think about making a random IV each time the function is called.</p>
+</div>
+
+        </article></aside><!-- /#featured -->
+            <section id="content" class="body">
+                <h1>Other articles</h1>
+                <hr />
+                    <ol id="posts-list" class="hfeed">
+        
+ 
+        <li><article class="hentry">    
+                <header>
+                        <h1><a href="http://brainacle.com/the-most-underrated-raspberry-pi-feature.html" rel="bookmark" title="Permalink to The Most Underrated Raspberry Pi feature">The Most Underrated Raspberry Pi feature</a></h1>
+                </header>
+                
+                <div class="entry-content">
                 <footer class="post-info">
                         <abbr class="published" title="2014-11-04T16:07:00">
                                 Tue 04 November 2014
@@ -48,28 +132,18 @@
                         <address class="vcard author">
                                 By <a class="url fn" href="#">Dejan Noveski</a>
                         </address>
-                <p>In <a href="http://brainacle.com/category/Miscellaneous.html">Miscellaneous</a>. </p>
-<p>tags: <a href="http://brainacle.com/tag/linux.html">linux</a> <a href="http://brainacle.com/tag/raspberry-pi.html">raspberry-pi</a> <a href="http://brainacle.com/tag/hdmi.html">hdmi</a> <a href="http://brainacle.com/tag/cec.html">cec</a> </p></p>                </footer><!-- /.post-info -->
+                        <p> In <a href="http://brainacle.com/category/Miscellaneous.html">Miscellaneous</a></p>
+<p>tags: <a href="http://brainacle.com/tag/linux.html">linux</a> <a href="http://brainacle.com/tag/raspberry-pi.html">raspberry-pi</a> <a href="http://brainacle.com/tag/hdmi.html">hdmi</a> <a href="http://brainacle.com/tag/cec.html">cec</a> </p></p>                    <p></p>
+                </footer><!-- /.post-info -->
                 <p>I absolutely love my Raspberry Pi. It's awesome and there's no point for me to start writing why is that.</p>
 <p>There is one feature tho, that's been very underrated, yet it's one of the best selling points
 of the RPi:</p>
 <div class="section" id="hdmi-cec">
 <h2>HDMI-CEC</h2>
-<p>&quot;HDMI-CEC (Consumer Electronics Control) is an HDMI feature designed to allow the user to command and control
-up-to 15 CEC-enabled devices, that are connected through HDMI, by using only one of their remote controls
-(for example by controlling a television set, set-top box, and DVD player using only the remote control of the TV).
-CEC also allows for individual CEC-enabled devices to command and control each other without user intervention.&quot; (<a class="reference external" href="http://en.wikipedia.org/wiki/HDMI#CEC/">From Wikipedia</a>)</p>
-<p>What this means is, you can control your RPi with the TV's remote! And the best part is, <strong>it works out of the box</strong> with your favorite xbmc flavor!
-I've had my RPi as a media center since they started shipping them and I've yet to put a keyboard or a mouse on it. If you have a TV with support for CEC, you're in luck.</p>
-<p>As I understand, Banana Pi and the likes have the hardware, but the linux cec driver doesn't work for them so they are trying to get that sorted out.
-Until then, RPi is the way to go if you plan on making a media center.</p>
-</div>
-
-        </article></aside><!-- /#featured -->
-            <section id="content" class="body">
-                <h1>Other articles</h1>
-                <hr />
-                    <ol id="posts-list" class="hfeed">
+<p>&quot;HDMI-CEC (Consumer Electronics Control) is ...</p></div>
+                <a class="readmore" href="http://brainacle.com/the-most-underrated-raspberry-pi-feature.html">read more</a>
+                </div><!-- /.entry-content -->
+        </article></li>
         
  
         <li><article class="hentry">    

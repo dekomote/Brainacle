@@ -39,7 +39,91 @@
         
         
         <aside id="featured" class="body"><article>
-                <h1 class="entry-title"><a href="http://brainacle.com/how-to-use-django-uni-form-with-twitter-bootstrap-css.html">How to use Django Uni-form with Twitter Bootstrap CSS</a></h1> 
+                <h1 class="entry-title"><a href="http://brainacle.com/encrypting-files-with-pycrypto.html">Encrypting files with Pycrypto</a></h1> 
+                <footer class="post-info">
+                        <abbr class="published" title="2014-11-04T20:58:00">
+                                Tue 04 November 2014
+                        </abbr>
+
+                        <address class="vcard author">
+                                By <a class="url fn" href="#">Dejan Noveski</a>
+                        </address>
+                <p>In <a href="http://brainacle.com/category/Coding.html">Coding</a>. </p>
+<p>tags: <a href="http://brainacle.com/tag/python.html">python</a> <a href="http://brainacle.com/tag/coding.html">coding</a> <a href="http://brainacle.com/tag/crypto.html">crypto</a> <a href="http://brainacle.com/tag/encryption.html">encryption</a> <a href="http://brainacle.com/tag/pycrypto.html">pycrypto</a> </p></p>                </footer><!-- /.post-info -->
+                <p><a class="reference external" href="https://www.dlitz.net/software/pycrypto/">Pycrypto</a> is the python cryptography toolkit you'll ever need. It supports pretty much everything, it's
+rather fast and has an understandable interface and documentation. Cryptography, in itself, is rather complicated and hard to understand and implement,
+and so is the documentation on encrypting files with pycrypto (or pretty much any crypto toolkit/library in the world).</p>
+<p>Recently, I was tasked with writing a code that will encrypt files to be decrypted on a mobile platform - Android and iOS. Both of their documentations are
+lacking in that department. You can easily find a snippet so that you can encrypt and decrypt a file on the same device, but not something that will work
+cross-device/cross-platform. That's because some of the details of the encryption algorithms are not mentioned and those are crucial.</p>
+<div class="section" id="eli5-aes">
+<h2>ELI5 AES</h2>
+<p>AES is a block cypher. That means, it encrypts/decrypts in blocks of 128 bits. The key used for the [en|de]cryption is 128, 192 or 256 bits.
+So, this means that your data has to be divisible by 128bits and your key must be 128, 192 or 256 bits. Pretty tough to meet these requirements considering
+we're dealing with binary/text files that will be some random length? Well, that's where padding comes in.</p>
+<p>In order to make the file's length divisible by <strong>128b(16B)</strong> we have to pad it. The most used padding scheme is <a class="reference external" href="http://en.wikipedia.org/wiki/Padding_%28cryptography%29#PKCS7">PKCS7</a>
+Simply append n &lt; 16 bytes to the file with value n to meet the 16B block size. So, the workflow now would be, pad -&gt; encrypt -&gt; decrypt -&gt; unpad.</p>
+<p>There's one more thing - IV - Should also be 16B. It's a common practice to have this at random, prepend it to the file on every encryption. We'll assume a static IV now for the sake of
+simplicity. The documentations around the net don't mention the IV. Then, the crypto system creates it per device, and you'll be stuck wondering how you can
+decrypt on your phone but not your desktop.</p>
+</div>
+<div class="section" id="enter-aes256-cbc-pkcs7">
+<h2>Enter AES256/CBC/PKCS7</h2>
+<p>This is the cookie cutter scheme for encryption. It's supported by the mobile OS-es and libraries, it's even the default!</p>
+<p>Doing this with openssl is easy:</p>
+<div class="highlight"><pre><span class="c"># To Encrypt</span>
+openssl enc -aes-256-cbc -k LyoNIpj8nqg5tcukqmW3kJ7PIbHtfeHE -iv 0000000000000000 -in in_file -out out_file
+
+<span class="c"># To Decrypt</span>
+openssl enc -d -aes-256-cbc -k LyoNIpj8nqg5tcukqmW3kJ7PIbHtfeHE -iv 0000000000000000 -in in_file -out out_file
+</pre></div>
+<p>In this example, the key is set to <em>LyoNIpj8nqg5tcukqmW3kJ7PIbHtfeHE</em> <strong>(32B/256b)</strong> and the IV is set to 16B of zeroes. Openssl pads with PKCS7 by default.</p>
+<p>Now let's see the example with pycrypto. Assuming with have in_file and out_file already opened:</p>
+<div class="highlight"><pre><span class="c"># initialize the encryption</span>
+<span class="n">encryption_key</span> <span class="o">=</span> <span class="s">&quot;LyoNIpj8nqg5tcukqmW3kJ7PIbHtfeHE&quot;</span>
+<span class="n">iv</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">*</span> <span class="s">&#39;</span><span class="se">\x00</span><span class="s">&#39;</span>
+<span class="n">crypt</span> <span class="o">=</span> <span class="n">AES</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">encryption_key</span><span class="p">,</span> <span class="n">AES</span><span class="o">.</span><span class="n">MODE_CBC</span><span class="p">,</span> <span class="n">iv</span><span class="p">)</span>
+
+<span class="c"># keep chunk size large for speed but divisible by 16B</span>
+<span class="n">chunksize</span> <span class="o">=</span> <span class="mi">1024</span>
+
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">chunk</span> <span class="o">=</span> <span class="n">infile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunksize</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c"># it&#39;s an empty chunk. We don&#39;t need it.</span>
+        <span class="k">break</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">==</span> <span class="n">chunksize</span><span class="p">:</span>
+        <span class="c"># We&#39;ve read a full encryptable chunk with length divisible by 16B</span>
+        <span class="n">out_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">crypt</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">chunk</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># We&#39;ve read a chunk that&#39;s not divisible by 16B. We PCKS7 pad it.</span>
+        <span class="c"># First calculate how many bytes we&#39;ll need to pad it</span>
+        <span class="n">padding_bytes</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">%</span> <span class="n">AES</span><span class="o">.</span><span class="n">block_size</span>
+        <span class="c"># Next, create the padding sequence</span>
+        <span class="n">padding</span> <span class="o">=</span> <span class="n">StringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">padding_bytes</span><span class="p">):</span>
+            <span class="c"># If we&#39;re missing 4 bytes, the padding sequence would be 04 04 04 04 (hex). That&#39;s why the formatting.</span>
+            <span class="n">padding</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%02x</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">padding_bytes</span><span class="p">)</span>
+        <span class="n">padded_chunk</span> <span class="o">=</span> <span class="n">chunk</span> <span class="o">+</span> <span class="n">binascii</span><span class="o">.</span><span class="n">unhexlify</span><span class="p">(</span><span class="n">padding</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+        <span class="n">out_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">crypt</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">padded_chunk</span><span class="p">))</span>
+</pre></div>
+<p>That's it. This should be decryptable with openssl, android crypto, ios crypto library and any device. Just need to know the encryption scheme, the IV and the encryption key.
+If you really want to make something secure, I suggest you think about making a random IV each time the function is called.</p>
+</div>
+
+        </article></aside><!-- /#featured -->
+            <section id="content" class="body">
+                <h1>Other articles</h1>
+                <hr />
+                    <ol id="posts-list" class="hfeed">
+        
+ 
+        <li><article class="hentry">    
+                <header>
+                        <h1><a href="http://brainacle.com/how-to-use-django-uni-form-with-twitter-bootstrap-css.html" rel="bookmark" title="Permalink to How to use Django Uni-form with Twitter Bootstrap CSS">How to use Django Uni-form with Twitter Bootstrap CSS</a></h1>
+                </header>
+                
+                <div class="entry-content">
                 <footer class="post-info">
                         <abbr class="published" title="2012-02-13T20:58:00">
                                 Mon 13 February 2012
@@ -48,129 +132,15 @@
                         <address class="vcard author">
                                 By <a class="url fn" href="#">Dejan Noveski</a>
                         </address>
-                <p>In <a href="http://brainacle.com/category/Coding.html">Coding</a>. </p>
-<p>tags: <a href="http://brainacle.com/tag/python.html">python</a> <a href="http://brainacle.com/tag/plugin.html">plugin</a> <a href="http://brainacle.com/tag/vim.html">vim</a> <a href="http://brainacle.com/tag/coding.html">coding</a> <a href="http://brainacle.com/tag/twitter.html">twitter</a> <a href="http://brainacle.com/tag/bootstrap.html">bootstrap</a> <a href="http://brainacle.com/tag/uniform.html">uniform</a> </p></p>                </footer><!-- /.post-info -->
+                        <p> In <a href="http://brainacle.com/category/Coding.html">Coding</a></p>
+<p>tags: <a href="http://brainacle.com/tag/python.html">python</a> <a href="http://brainacle.com/tag/plugin.html">plugin</a> <a href="http://brainacle.com/tag/vim.html">vim</a> <a href="http://brainacle.com/tag/coding.html">coding</a> <a href="http://brainacle.com/tag/twitter.html">twitter</a> <a href="http://brainacle.com/tag/bootstrap.html">bootstrap</a> <a href="http://brainacle.com/tag/uniform.html">uniform</a> </p></p>                    <p></p>
+                </footer><!-- /.post-info -->
                 <p>I'm sure, most of you, know what <a class="reference external" href="https://github.com/pydanny/django-uni-form">django-uni-form</a> is... For those that don't, django-uni-form is a
 very cool django app that makes form management/styling/layouting a breeze. You can do pretty much anything to a form with it: Split it in formsets, add
-HTML between every element, wrap different elements in different containers etc. Also, it produces great HTML, and it manages the &lt;form&gt; tag, as well
-as the submit/reset buttons. If you aren't using it, you should definitely start.</p>
-<p><a class="reference external" href="http://twitter.github.com/bootstrap/">Twitter Bootstrap</a> is a client side framework by twitter, encompassing many aspects - layout, sane default CSS, typography,
-Javascript plugins, even some icons. It looks very professional, it's easy to use and very popular. The way bootstrap styles a form is what most people need when
-building or prototyping a web app. But, you need to be able to change some css classes and html elements in order to work.</p>
-<p>Doing this with django-uni-form is extremely easy. All we need to do is change the default <strong>field</strong> template. I'll start with an example:</p>
-<div class="section" id="bootstrap">
-<h2>Bootstrap</h2>
-<p>This step is easy. Just make sure you have downloaded the Bootstrap CSS file, and that it's properly loaded.</p>
-</div>
-<div class="section" id="the-html">
-<h2>The HTML</h2>
-<p>Simple HTML is all we need:</p>
-<div class="highlight"><pre>{% load uni_form_tags %}
-<span class="cp">&lt;!doctype html&gt;</span>
-<span class="nt">&lt;html&gt;</span>
-<span class="nt">&lt;head&gt;</span>
-  <span class="nt">&lt;title&gt;</span>Django Uniform and Bootstrap<span class="nt">&lt;/title&gt;</span>
-  <span class="c">&lt;!-- LOAD BOOTSTRAP CSS HERE --&gt;</span>
-<span class="nt">&lt;/head&gt;</span>
-<span class="nt">&lt;body&gt;</span>
-  <span class="nt">&lt;header</span> <span class="na">class=</span><span class="s">&quot;navbar&quot;</span><span class="nt">&gt;</span>
-  <span class="nt">&lt;/header&gt;</span>
-  <span class="nt">&lt;div</span> <span class="na">role=</span><span class="s">&quot;main&quot;</span> <span class="na">class=</span><span class="s">&quot;container&quot;</span><span class="nt">&gt;</span>
-    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;row&quot;</span><span class="nt">&gt;</span>
-        <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;span12&quot;</span><span class="nt">&gt;</span>
-            {% uni_form form form.helper %}
-        <span class="nt">&lt;/div&gt;</span>
-    <span class="nt">&lt;/div&gt;</span>
-    <span class="nt">&lt;hr/&gt;</span>
-    <span class="nt">&lt;footer&gt;</span>
-      Brainacle 2012
-    <span class="nt">&lt;/footer&gt;</span>
-  <span class="nt">&lt;/div&gt;</span>
-  <span class="c">&lt;!-- LOAD BOOTSTRAP JS HERE --&gt;</span>
-<span class="nt">&lt;/body&gt;</span>
-<span class="nt">&lt;/html&gt;</span>
-</pre></div>
-</div>
-<div class="section" id="the-form">
-<h2>The Form</h2>
-<p>I'm making a simple User edit ModelForm, with one extra text field:</p>
-<div class="highlight"><pre><span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">forms</span>
-<span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="kn">import</span> <span class="n">User</span>
-<span class="kn">from</span> <span class="nn">django.core.urlresolvers</span> <span class="kn">import</span> <span class="n">reverse</span>
-
-<span class="kn">from</span> <span class="nn">uni_form.helper</span> <span class="kn">import</span> <span class="n">FormHelper</span>
-<span class="kn">from</span> <span class="nn">uni_form.layout</span> <span class="kn">import</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">ButtonHolder</span><span class="p">,</span> <span class="n">Submit</span><span class="p">,</span> <span class="n">Fieldset</span>
-
-
-<span class="k">class</span> <span class="nc">UserEditForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
-    <span class="n">bio</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">label</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Bio&#39;</span><span class="p">),</span> <span class="n">required</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span>
-                    <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Textarea</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;class&#39;</span><span class="p">:</span><span class="s">&#39;span12&#39;</span><span class="p">}))</span>
-
-    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
-        <span class="n">model</span> <span class="o">=</span> <span class="n">User</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;username&quot;</span><span class="p">,</span> <span class="s">&quot;first_name&quot;</span><span class="p">,</span> <span class="s">&quot;last_name&quot;</span><span class="p">,</span> <span class="s">&quot;email&quot;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">helper</span> <span class="o">=</span> <span class="n">FormHelper</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">helper</span><span class="o">.</span><span class="n">form_method</span> <span class="o">=</span> <span class="s">&#39;POST&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">helper</span><span class="o">.</span><span class="n">form_action</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&quot;user_edit_view_name&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">helper</span><span class="o">.</span><span class="n">form_class</span> <span class="o">=</span> <span class="s">&#39;form-horizontal&#39;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">helper</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span>
-            <span class="n">Fieldset</span><span class="p">(</span>
-                <span class="s">&#39;Edit Account Info&#39;</span><span class="p">,</span>
-                <span class="s">&#39;username&#39;</span><span class="p">,</span> <span class="s">&#39;first_name&#39;</span><span class="p">,</span> <span class="s">&#39;last_name&#39;</span><span class="p">,</span>
-                <span class="s">&#39;email&#39;</span><span class="p">,</span> <span class="s">&#39;bio&#39;</span><span class="p">,</span> <span class="s">&#39;save&#39;</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">ButtonHolder</span><span class="p">(</span>
-                <span class="n">Submit</span><span class="p">(</span><span class="s">&#39;save&#39;</span><span class="p">,</span> <span class="s">&#39;Save&#39;</span><span class="p">,</span> <span class="n">css_class</span><span class="o">=</span><span class="s">&#39;btn btn-large btn-primary pull-right&#39;</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">UserEditForm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</pre></div>
-<p><strong>Notes:</strong> We add span10 class to the &quot;bio&quot; field textarea because labels will take 2 spans, and we want the textarea
-fill the entire width. We add class &quot;form-horizontal&quot; to the form, to get the labels position in line with the inputs.
-The button classes are also important.</p>
-</div>
-<div class="section" id="the-magic">
-<h2>The Magic</h2>
-<p>Now, we have to tell uni-form to generate html that will be compatible with Bootstrap.
-Lucky enough, uni-form provides us with the ability to override the generic field HTML template.
-Just make a new file called <strong>field.html</strong> inside <strong>[template root path]/uni_form/</strong> folder with the
-following content:</p>
-<div class="highlight"><pre>{% if field.is_hidden %}
-    {{ field }}
-{% else %}
-<span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;control-group {% if field.errors %}error{% endif %}&quot;</span><span class="nt">&gt;</span>
-    <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;{{ field.auto_id }}&quot;</span> <span class="na">class=</span><span class="s">&quot;control-label&quot;</span><span class="nt">&gt;</span>
-        {% if field.field.required %}<span class="nt">&lt;b&gt;</span>{% endif %}{{ field.label|safe }}{% if field.field.required %}*<span class="nt">&lt;/b&gt;</span>{% endif %}
-    <span class="nt">&lt;/label&gt;</span>
-    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;controls&quot;</span><span class="nt">&gt;</span>
-        {{ field }}
-        {% if field.errors %}
-            <span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;help-inline&quot;</span><span class="nt">&gt;</span>{% for error in field.errors %}{{ error }}<span class="nt">&lt;br/&gt;</span> {% endfor %}<span class="nt">&lt;/span&gt;</span>
-        {% endif %}
-        {% if field.help_text%}
-            <span class="nt">&lt;p</span> <span class="na">class=</span><span class="s">&quot;help-block&quot;</span><span class="nt">&gt;</span>
-                {{ field.help_text|safe }}
-            <span class="nt">&lt;/p&gt;</span>
-        {% endif %}
-    <span class="nt">&lt;/div&gt;</span>
-<span class="nt">&lt;/div&gt;</span>
-{% endif %}
-</pre></div>
-<p>This template handles labels, required fields, help text, errors etc. The end result looks something like this:</p>
-<div class="center-align container">
-<img alt="" src="../static/uploads/bootstrap_uniform.png" />
-</div>
-</div>
-
-        </article></aside><!-- /#featured -->
-            <section id="content" class="body">
-                <h1>Other articles</h1>
-                <hr />
-                    <ol id="posts-list" class="hfeed">
+HTML between every element ...</p>
+                <a class="readmore" href="http://brainacle.com/how-to-use-django-uni-form-with-twitter-bootstrap-css.html">read more</a>
+                </div><!-- /.entry-content -->
+        </article></li>
         
  
         <li><article class="hentry">    

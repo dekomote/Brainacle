@@ -1,5 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Brainacle</title><link href="http://brainacle.com/" rel="alternate"></link><link href="http://brainacle.com/feeds/dejan-noveski.atom.xml" rel="self"></link><id>http://brainacle.com/</id><updated>2014-11-04T16:07:00Z</updated><entry><title>The Most Underrated Raspberry Pi feature</title><link href="http://brainacle.com/the-most-underrated-raspberry-pi-feature.html" rel="alternate"></link><updated>2014-11-04T16:07:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2014-11-04:the-most-underrated-raspberry-pi-feature.html</id><summary type="html">&lt;p&gt;I absolutely love my Raspberry Pi. It's awesome and there's no point for me to start writing why is that.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Brainacle</title><link href="http://brainacle.com/" rel="alternate"></link><link href="http://brainacle.com/feeds/dejan-noveski.atom.xml" rel="self"></link><id>http://brainacle.com/</id><updated>2014-11-04T20:58:00Z</updated><entry><title>Encrypting files with Pycrypto</title><link href="http://brainacle.com/encrypting-files-with-pycrypto.html" rel="alternate"></link><updated>2014-11-04T20:58:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2014-11-04:encrypting-files-with-pycrypto.html</id><summary type="html">&lt;p&gt;&lt;a class="reference external" href="https://www.dlitz.net/software/pycrypto/"&gt;Pycrypto&lt;/a&gt; is the python cryptography toolkit you'll ever need. It supports pretty much everything, it's
+rather fast and has an understandable interface and documentation. Cryptography, in itself, is rather complicated and hard to understand and implement,
+and so is the documentation on encrypting files with pycrypto (or pretty much any crypto toolkit/library in the world).&lt;/p&gt;
+&lt;p&gt;Recently, I was tasked with writing a code that will encrypt files to be decrypted on a mobile platform - Android and iOS. Both of their documentations are
+lacking in that department. You can easily find a snippet so that you can encrypt and decrypt a file on the same device, but not something that will work
+cross-device/cross-platform. That's because some of the details of the encryption algorithms are not mentioned and those are crucial.&lt;/p&gt;
+&lt;div class="section" id="eli5-aes"&gt;
+&lt;h2&gt;ELI5 AES&lt;/h2&gt;
+&lt;p&gt;AES is a block cypher. That means, it encrypts/decrypts in blocks of 128 bits. The key used for the [en|de]cryption is 128, 192 or 256 bits.
+So, this means that your data has to be divisible by 128bits and your key must be 128, 192 or 256 bits. Pretty tough to meet these requirements considering
+we're dealing with binary/text files that will be some random length? Well, that's where padding comes in.&lt;/p&gt;
+&lt;p&gt;In order to make the file's length divisible by &lt;strong&gt;128b(16B)&lt;/strong&gt; we have to pad it. The most used padding scheme is &lt;a class="reference external" href="http://en.wikipedia.org/wiki/Padding_%28cryptography%29#PKCS7"&gt;PKCS7&lt;/a&gt;
+Simply append n &amp;lt; 16 bytes to the file with value n to meet the 16B block size. So, the workflow now would be, pad -&amp;gt; encrypt -&amp;gt; decrypt -&amp;gt; unpad.&lt;/p&gt;
+&lt;p&gt;There's one more thing - IV - Should also be 16B. It's a common practice to have this at random, prepend it to the file on every encryption. We'll assume a static IV now for the sake of
+simplicity. The documentations around the net don't mention the IV. Then, the crypto system creates it per device, and you'll be stuck wondering how you can
+decrypt on your phone but not your desktop.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="enter-aes256-cbc-pkcs7"&gt;
+&lt;h2&gt;Enter AES256/CBC/PKCS7&lt;/h2&gt;
+&lt;p&gt;This is the cookie cutter scheme for encryption. It's supported by the mobile OS-es and libraries, it's even the default!&lt;/p&gt;
+&lt;p&gt;Doing this with openssl is easy:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# To Encrypt&lt;/span&gt;
+openssl enc -aes-256-cbc -k LyoNIpj8nqg5tcukqmW3kJ7PIbHtfeHE -iv 0000000000000000 -in in_file -out out_file
+
+&lt;span class="c"&gt;# To Decrypt&lt;/span&gt;
+openssl enc -d -aes-256-cbc -k LyoNIpj8nqg5tcukqmW3kJ7PIbHtfeHE -iv 0000000000000000 -in in_file -out out_file
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In this example, the key is set to &lt;em&gt;LyoNIpj8nqg5tcukqmW3kJ7PIbHtfeHE&lt;/em&gt; &lt;strong&gt;(32B/256b)&lt;/strong&gt; and the IV is set to 16B of zeroes. Openssl pads with PKCS7 by default.&lt;/p&gt;
+&lt;p&gt;Now let's see the example with pycrypto. Assuming with have in_file and out_file already opened:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# initialize the encryption&lt;/span&gt;
+&lt;span class="n"&gt;encryption_key&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;LyoNIpj8nqg5tcukqmW3kJ7PIbHtfeHE&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;iv&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;16&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;&lt;/span&gt;&lt;span class="se"&gt;\x00&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;crypt&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;AES&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;encryption_key&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;AES&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MODE_CBC&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;iv&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c"&gt;# keep chunk size large for speed but divisible by 16B&lt;/span&gt;
+&lt;span class="n"&gt;chunksize&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1024&lt;/span&gt;
+
+&lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="bp"&gt;True&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;chunk&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;infile&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;chunksize&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;chunk&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="c"&gt;# it&amp;#39;s an empty chunk. We don&amp;#39;t need it.&lt;/span&gt;
+        &lt;span class="k"&gt;break&lt;/span&gt;
+    &lt;span class="k"&gt;elif&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;chunk&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;chunksize&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="c"&gt;# We&amp;#39;ve read a full encryptable chunk with length divisible by 16B&lt;/span&gt;
+        &lt;span class="n"&gt;out_file&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;crypt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encrypt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;chunk&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+    &lt;span class="k"&gt;else&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="c"&gt;# We&amp;#39;ve read a chunk that&amp;#39;s not divisible by 16B. We PCKS7 pad it.&lt;/span&gt;
+        &lt;span class="c"&gt;# First calculate how many bytes we&amp;#39;ll need to pad it&lt;/span&gt;
+        &lt;span class="n"&gt;padding_bytes&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;16&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;chunk&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="n"&gt;AES&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;block_size&lt;/span&gt;
+        &lt;span class="c"&gt;# Next, create the padding sequence&lt;/span&gt;
+        &lt;span class="n"&gt;padding&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;StringIO&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;StringIO&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;_&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;xrange&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;padding_bytes&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+            &lt;span class="c"&gt;# If we&amp;#39;re missing 4 bytes, the padding sequence would be 04 04 04 04 (hex). That&amp;#39;s why the formatting.&lt;/span&gt;
+            &lt;span class="n"&gt;padding&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;&lt;/span&gt;&lt;span class="si"&gt;%02x&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="n"&gt;padding_bytes&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;padded_chunk&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;chunk&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;binascii&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;unhexlify&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;padding&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getvalue&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+        &lt;span class="n"&gt;out_file&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;crypt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encrypt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;padded_chunk&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;That's it. This should be decryptable with openssl, android crypto, ios crypto library and any device. Just need to know the encryption scheme, the IV and the encryption key.
+If you really want to make something secure, I suggest you think about making a random IV each time the function is called.&lt;/p&gt;
+&lt;/div&gt;
+</summary><category term="python"></category><category term="coding"></category><category term="crypto"></category><category term="encryption"></category><category term="pycrypto"></category></entry><entry><title>The Most Underrated Raspberry Pi feature</title><link href="http://brainacle.com/the-most-underrated-raspberry-pi-feature.html" rel="alternate"></link><updated>2014-11-04T16:07:00Z</updated><author><name>Dejan Noveski</name></author><id>tag:brainacle.com,2014-11-04:the-most-underrated-raspberry-pi-feature.html</id><summary type="html">&lt;p&gt;I absolutely love my Raspberry Pi. It's awesome and there's no point for me to start writing why is that.&lt;/p&gt;
 &lt;p&gt;There is one feature tho, that's been very underrated, yet it's one of the best selling points
 of the RPi:&lt;/p&gt;
 &lt;div class="section" id="hdmi-cec"&gt;
